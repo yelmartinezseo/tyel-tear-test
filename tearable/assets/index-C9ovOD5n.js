@@ -58731,400 +58731,1540 @@ const calImg = [];
 const mb = {
     id:"cal-enero",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[0];
-        r.fillStyle="#1a2e42";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#1a3560";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#e8f4ff";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("ENERO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[0];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#7B9EBE");
+        grad.addColorStop(1,"#7B9EBECC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Enero",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#1a3560":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=4;sl<35;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#1a3560";r.fill();r.fillStyle="#e8f4ff";}
-            else{r.fillStyle=isW?"#1a3560":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#7B9EBE":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((4+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=4;sl<4+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#7B9EBE";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#7B9EBEBB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
   , gb = {
     id:"cal-febrero",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[1];
-        r.fillStyle="#fdf6e3";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#8b6914";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#fff8e8";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("FEBRERO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[1];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#E8A598");
+        grad.addColorStop(1,"#E8A598CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Febrero",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#8b6914":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=0;sl<28;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#8b6914";r.fill();r.fillStyle="#fff8e8";}
-            else{r.fillStyle=isW?"#8b6914":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>28)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#E8A598":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((0+28)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=0;sl<0+28;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#E8A598";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#E8A598BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>28)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
   , vb = {
     id:"cal-marzo",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[2];
-        r.fillStyle="#d8f3dc";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#1b4332";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#d8f3dc";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("MARZO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[2];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#7BBC9A");
+        grad.addColorStop(1,"#7BBC9ACC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Marzo",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#1b4332":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=0;sl<31;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#1b4332";r.fill();r.fillStyle="#d8f3dc";}
-            else{r.fillStyle=isW?"#1b4332":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#7BBC9A":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((0+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=0;sl<0+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#7BBC9A";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#7BBC9ABB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
   , w4 = {
     id:"cal-abril",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[3];
-        r.fillStyle="#f0e6ff";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#4a1942";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#f0e6ff";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("ABRIL",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[3];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#C4A0C8");
+        grad.addColorStop(1,"#C4A0C8CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Abril",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#4a1942":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=3;sl<33;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#4a1942";r.fill();r.fillStyle="#f0e6ff";}
-            else{r.fillStyle=isW?"#4a1942":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#C4A0C8":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((3+30)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=3;sl<3+30;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#C4A0C8";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#C4A0C8BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>30)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
   , C4 = {
     id:"cal-mayo",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[4];
-        r.fillStyle="#f4eed8";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#b8321a";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#ffffff";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("MAYO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[4];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#E8765A");
+        grad.addColorStop(1,"#E8765ACC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Mayo",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#b8321a":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=5;sl<36;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===14;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#b8321a";r.fill();r.fillStyle="#ffffff";}
-            else{r.fillStyle=isW?"#b8321a":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#E8765A":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((5+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=5;sl<5+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===14;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#E8765A";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#E8765ABB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
   , yb = {
     id:"cal-junio",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[5];
-        r.fillStyle="#caf0f8";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#0077b6";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#caf0f8";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("JUNIO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[5];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#5BB5D5");
+        grad.addColorStop(1,"#5BB5D5CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Junio",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#0077b6":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=1;sl<31;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#0077b6";r.fill();r.fillStyle="#caf0f8";}
-            else{r.fillStyle=isW?"#0077b6":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#5BB5D5":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((1+30)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=1;sl<1+30;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#5BB5D5";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#5BB5D5BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>30)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc6 = {
     id:"cal-julio",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[6];
-        r.fillStyle="#fff3e8";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#d4500a";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#fff3e8";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("JULIO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[6];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#F0A45A");
+        grad.addColorStop(1,"#F0A45ACC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Julio",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#d4500a":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=3;sl<34;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#d4500a";r.fill();r.fillStyle="#fff3e8";}
-            else{r.fillStyle=isW?"#d4500a":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#F0A45A":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((3+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=3;sl<3+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#F0A45A";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#F0A45ABB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc7 = {
     id:"cal-agosto",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[7];
-        r.fillStyle="#ffe8e8";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#9b2226";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#ffe8e8";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("AGOSTO",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[7];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#E07878");
+        grad.addColorStop(1,"#E07878CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Agosto",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#9b2226":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=6;sl<37;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#9b2226";r.fill();r.fillStyle="#ffe8e8";}
-            else{r.fillStyle=isW?"#9b2226":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#E07878":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((6+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=6;sl<6+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#E07878";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#E07878BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc8 = {
     id:"cal-septiembre",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[8];
-        r.fillStyle="#fdecd2";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#6b3a1f";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#fdecd2";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("SEPTIEMBRE",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[8];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#C8965A");
+        grad.addColorStop(1,"#C8965ACC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Septiembre",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#6b3a1f":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=2;sl<32;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#6b3a1f";r.fill();r.fillStyle="#fdecd2";}
-            else{r.fillStyle=isW?"#6b3a1f":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#C8965A":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((2+30)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=2;sl<2+30;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#C8965A";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#C8965ABB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>30)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc9 = {
     id:"cal-octubre",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[9];
-        r.fillStyle="#e8f5e9";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#386641";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#e8f5e9";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("OCTUBRE",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[9];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#7AAB7A");
+        grad.addColorStop(1,"#7AAB7ACC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Octubre",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#386641":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=4;sl<35;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#386641";r.fill();r.fillStyle="#e8f5e9";}
-            else{r.fillStyle=isW?"#386641":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#7AAB7A":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((4+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=4;sl<4+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#7AAB7A";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#7AAB7ABB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc10 = {
     id:"cal-noviembre",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[10];
-        r.fillStyle="#dfe6e9";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#2d3436";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#dfe6e9";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("NOVIEMBRE",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[10];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#9898C8");
+        grad.addColorStop(1,"#9898C8CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Noviembre",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#2d3436":"#1c1408";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=0;sl<30;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#2d3436";r.fill();r.fillStyle="#dfe6e9";}
-            else{r.fillStyle=isW?"#2d3436":"#1c1408";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#9898C8":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((0+30)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=0;sl<0+30;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#9898C8";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#9898C8BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>30)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
 const sc11 = {
     id:"cal-diciembre",
     render:(r,e,t,n,s)=>{
-        const lh=Math.round(t/30),hH=Math.round(t*.13),img=calImg[11];
-        r.fillStyle="#1a1a2e";r.fillRect(0,0,e,t);
-        if(img&&img.complete&&img.naturalWidth>0){const sc=Math.min(e/img.naturalWidth,t/img.naturalHeight),iw=img.naturalWidth*sc*.9,ih=img.naturalHeight*sc*.9;r.globalAlpha=.22;r.drawImage(img,(e-iw)/2,(t-ih)/2,iw,ih);r.globalAlpha=1;}
-        r.strokeStyle="rgba(160,140,100,.14)";r.lineWidth=1;
-        for(let y=hH+lh;y<t;y+=lh){r.beginPath();r.moveTo(0,y);r.lineTo(e,y);r.stroke();}
-        r.strokeStyle="rgba(184,50,26,.2)";r.lineWidth=1.5;r.beginPath();r.moveTo(e*.08,hH);r.lineTo(e*.08,t);r.stroke();
-        r.fillStyle="#1a1a2e";r.fillRect(0,0,e,hH);
-        const fs=Math.min(t*.11,e*.14);
-        r.font=`bold ${fs}px "Special Gothic Expanded One",sans-serif`;r.fillStyle="#f0c040";r.textAlign="left";r.textBaseline="alphabetic";
-        r.fillText("DICIEMBRE",e*.055,hH*.82);
-        r.font=`${Math.round(fs*.28)}px "Special Gothic Expanded One",sans-serif`;r.globalAlpha=.55;r.fillText("2026",e*.057,hH*.97);r.globalAlpha=1;
+        const hH=Math.round(t*.18);
+        const lh=Math.round(t/32);
+        const img=calImg[11];
+
+        // Fondo blanco del cuerpo
+        r.fillStyle="#FFFFFF";
+        r.fillRect(0,0,e,t);
+
+        // Cabecera color suave con gradiente
+        const grad=r.createLinearGradient(0,0,e,hH);
+        grad.addColorStop(0,"#5A8FC8");
+        grad.addColorStop(1,"#5A8FC8CC");
+        r.fillStyle=grad;
+        r.fillRect(0,0,e,hH);
+
+        // Nombre del mes — grande, blanco, bold
+        const fs=Math.min(t*.13,e*.16);
+        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#FFFFFF";
+        r.textAlign="left";
+        r.textBaseline="alphabetic";
+        r.fillText("Diciembre",e*.06,hH*.72);
+
+        // Año — pequeño, semitransparente
+        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.75)";
+        r.fillText("2026",e*.065,hH*.92);
+
+        // Separador sutil bajo la cabecera
+        r.fillStyle="rgba(0,0,0,0.04)";
+        r.fillRect(0,hH,e,2);
+
+        // Días de la semana
         const colW=e/7;
-        ["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"].forEach((d,i)=>{r.fillStyle=(i===0||i===6)?"#1a1a2e":"#f0c040";r.globalAlpha=(i===0||i===6)?1:.65;r.font=`${Math.round(e*.02)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(d,colW*i+colW/2,hH+lh*.8);});r.globalAlpha=1;
-        const gY=hH+lh*1.6,cH=lh*3.4;let day=1;
-        for(let sl=2;sl<33;sl++){
-            const col=sl%7,row=Math.floor(sl/7),cx=colW*col+colW/2,cy=gY+row*cH+lh/2,isW=col===0||col===6,isT=day===-1;
-            if(isT){r.beginPath();r.arc(cx,cy,lh*.44,0,Math.PI*2);r.fillStyle="#1a1a2e";r.fill();r.fillStyle="#f0c040";}
-            else{r.fillStyle=isW?"#1a1a2e":"#f0c040";}
-            r.font=`${Math.round(e*.023)}px "Special Gothic Expanded One",sans-serif`;r.textAlign="center";r.textBaseline="middle";r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+        const wdY=hH+lh*1.5;
+        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.textBaseline="middle";
+        ["D","L","M","X","J","V","S"].forEach((d,i)=>{
+            const isWE=i===0||i===6;
+            r.fillStyle=isWE?"#5A8FC8":"#AAAAAA";
+            r.textAlign="center";
+            r.fillText(d,colW*i+colW/2,wdY);
+        });
+
+        // Línea divisora bajo días de semana
+        r.strokeStyle="rgba(0,0,0,0.06)";
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(e*.04,hH+lh*2.2);
+        r.lineTo(e*.96,hH+lh*2.2);
+        r.stroke();
+
+        // Números de días
+        const gY=hH+lh*2.8;
+        const cH=(t-gY-lh*2)/1;
+        const rows=Math.ceil((2+31)/7);
+        const cellH=(t-gY-lh*2)/rows;
+
+        let day=1;
+        for(let sl=2;sl<2+31;sl++){
+            const col=sl%7;
+            const row=Math.floor(sl/7);
+            const cx=colW*col+colW/2;
+            const cy=gY+row*cellH+cellH/2;
+            const isWE=col===0||col===6;
+            const isToday=day===-1;
+
+            if(isToday){
+                // Círculo de color para hoy
+                r.beginPath();
+                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.fillStyle="#5A8FC8";
+                r.fill();
+                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#FFFFFF";
+            } else if(isWE){
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#5A8FC8BB";
+            } else {
+                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#2A2A2A";
+            }
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(day,cx,cy);
+            day++;
+            if(day>31)break;
         }
-        const hN=12,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){r.beginPath();r.arc(hS*i,6,5,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.85)";r.fill();}
-        const sY=t-lh*1.8;r.fillStyle="rgba(0,0,0,.04)";r.fillRect(0,sY,e,t-sY);
-        r.setLineDash([4,7]);r.strokeStyle="rgba(140,120,80,.3)";r.lineWidth=1;r.beginPath();r.moveTo(0,sY);r.lineTo(e,sY);r.stroke();r.setLineDash([]);
-        const pN=22,pS=e/(pN+1);
-        for(let i=1;i<=pN;i++){r.beginPath();r.arc(pS*i,sY,3,0,Math.PI*2);r.fillStyle="rgba(25,18,10,.4)";r.fill();}
+
+        // Perforaciones espiral arriba
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            // Aro metálico
+            r.beginPath();
+            r.arc(hS*i,7,6,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,7,4,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.9)";
+            r.fill();
+        }
+
+        // Franja de corte inferior
+        const sY=t-lh*2;
+        r.strokeStyle="rgba(0,0,0,0.08)";
+        r.setLineDash([5,6]);
+        r.lineWidth=1;
+        r.beginPath();
+        r.moveTo(0,sY);
+        r.lineTo(e,sY);
+        r.stroke();
+        r.setLineDash([]);
+
+        // Perforaciones de corte
+        const pN=24,pS=e/(pN+1);
+        for(let i=1;i<=pN;i++){
+            r.beginPath();
+            r.arc(pS*i,sY,2.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.15)";
+            r.fill();
+        }
     },
     getHitRegions:()=>[]
 }
-  , R4 = typeof navigator < "u" && /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent)
+, R4 = typeof navigator < "u" && /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent)
   , D4 = typeof window < "u" && ("ontouchstart"in window || (navigator.maxTouchPoints ?? 0) > 0)
   , L4 = D4 ? [mb, gb, vb, C4, yb, sc6, sc7, sc8, sc9, sc10, sc11] : R4 ? [mb, gb, vb, yb, sc6, sc7, sc8, sc9, sc10, sc11] : [mb, gb, vb, w4, C4, yb, sc6, sc7, sc8, sc9, sc10, sc11]
   , U4 = calImg.filter(Boolean)
