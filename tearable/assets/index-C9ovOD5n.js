@@ -58731,87 +58731,76 @@ const calImg = [];
 const mb = {
     id:"cal-enero",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[0];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#7B9EBE");
-        grad.addColorStop(1,"#7B9EBECC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Enero",e*.06,hH*.72);
+        r.fillText("Enero",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7B9EBE":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((4+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=4;sl<4+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7B9EBE";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7B9EBEBB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -58820,37 +58809,23 @@ const mb = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -58859,87 +58834,76 @@ const mb = {
   , gb = {
     id:"cal-febrero",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[1];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#E8A598");
-        grad.addColorStop(1,"#E8A598CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Febrero",e*.06,hH*.72);
+        r.fillText("Febrero",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E8A598":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((0+28)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/4;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+28;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8A598";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E8A598BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -58948,37 +58912,23 @@ const mb = {
             if(day>28)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -58987,87 +58937,76 @@ const mb = {
   , vb = {
     id:"cal-marzo",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[2];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#7BBC9A");
-        grad.addColorStop(1,"#7BBC9ACC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Marzo",e*.06,hH*.72);
+        r.fillText("Marzo",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7BBC9A":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((0+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7BBC9A";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7BBC9ABB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59076,37 +59015,23 @@ const mb = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59115,87 +59040,76 @@ const mb = {
   , w4 = {
     id:"cal-abril",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[3];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#C4A0C8");
-        grad.addColorStop(1,"#C4A0C8CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Abril",e*.06,hH*.72);
+        r.fillText("Abril",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#C4A0C8":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((3+30)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=3;sl<3+30;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C4A0C8";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#C4A0C8BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59204,37 +59118,23 @@ const mb = {
             if(day>30)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59243,87 +59143,76 @@ const mb = {
   , C4 = {
     id:"cal-mayo",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[4];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#E8765A");
-        grad.addColorStop(1,"#E8765ACC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Mayo",e*.06,hH*.72);
+        r.fillText("Mayo",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E8765A":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((5+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/6;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=5;sl<5+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===14;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8765A";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E8765ABB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59332,37 +59221,23 @@ const mb = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59371,87 +59246,76 @@ const mb = {
   , yb = {
     id:"cal-junio",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[5];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#5BB5D5");
-        grad.addColorStop(1,"#5BB5D5CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Junio",e*.06,hH*.72);
+        r.fillText("Junio",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#5BB5D5":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((1+30)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=1;sl<1+30;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5BB5D5";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#5BB5D5BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59460,37 +59324,23 @@ const mb = {
             if(day>30)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59499,87 +59349,76 @@ const mb = {
 const sc6 = {
     id:"cal-julio",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[6];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#F0A45A");
-        grad.addColorStop(1,"#F0A45ACC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Julio",e*.06,hH*.72);
+        r.fillText("Julio",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#F0A45A":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((3+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=3;sl<3+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#F0A45A";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#F0A45ABB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59588,37 +59427,23 @@ const sc6 = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59627,87 +59452,76 @@ const sc6 = {
 const sc7 = {
     id:"cal-agosto",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[7];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#E07878");
-        grad.addColorStop(1,"#E07878CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Agosto",e*.06,hH*.72);
+        r.fillText("Agosto",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E07878":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((6+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/6;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=6;sl<6+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E07878";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E07878BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59716,37 +59530,23 @@ const sc7 = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59755,87 +59555,76 @@ const sc7 = {
 const sc8 = {
     id:"cal-septiembre",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[8];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#C8965A");
-        grad.addColorStop(1,"#C8965ACC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Septiembre",e*.06,hH*.72);
+        r.fillText("Septiembre",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#C8965A":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((2+30)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=2;sl<2+30;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C8965A";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#C8965ABB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59844,37 +59633,23 @@ const sc8 = {
             if(day>30)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -59883,87 +59658,76 @@ const sc8 = {
 const sc9 = {
     id:"cal-octubre",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[9];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#7AAB7A");
-        grad.addColorStop(1,"#7AAB7ACC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Octubre",e*.06,hH*.72);
+        r.fillText("Octubre",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7AAB7A":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((4+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=4;sl<4+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7AAB7A";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7AAB7ABB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -59972,37 +59736,23 @@ const sc9 = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -60011,87 +59761,76 @@ const sc9 = {
 const sc10 = {
     id:"cal-noviembre",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[10];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#9898C8");
-        grad.addColorStop(1,"#9898C8CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Noviembre",e*.06,hH*.72);
+        r.fillText("Noviembre",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#9898C8":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((0+30)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+30;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#9898C8";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#9898C8BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -60100,37 +59839,23 @@ const sc10 = {
             if(day>30)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
@@ -60139,87 +59864,76 @@ const sc10 = {
 const sc11 = {
     id:"cal-diciembre",
     render:(r,e,t,n,s)=>{
-        const hH=Math.round(t*.18);
-        const lh=Math.round(t/32);
-        const img=calImg[11];
-
-        // Fondo blanco del cuerpo
+        // Fondo blanco puro — todo el calendario
         r.fillStyle="#FFFFFF";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave con gradiente
-        const grad=r.createLinearGradient(0,0,e,hH);
-        grad.addColorStop(0,"#5A8FC8");
-        grad.addColorStop(1,"#5A8FC8CC");
-        r.fillStyle=grad;
-        r.fillRect(0,0,e,hH);
+        // Perforaciones espiral arriba — discretas
+        const hN=14,hS=e/(hN+1);
+        for(let i=1;i<=hN;i++){
+            r.beginPath();
+            r.arc(hS*i,8,5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
+            r.fill();
+            r.beginPath();
+            r.arc(hS*i,8,3,0,Math.PI*2);
+            r.fillStyle="rgba(255,255,255,0.95)";
+            r.fill();
+        }
 
-        // Nombre del mes — grande, blanco, bold
-        const fs=Math.min(t*.13,e*.16);
-        r.font=`700 ${fs}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="#FFFFFF";
+        // Nombre del mes — texto oscuro sobre blanco, tipografía pesada
+        const nameY=e*.12+28;
+        r.font=`700 ${Math.round(e*.085)}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
+        r.fillStyle="#1C1C1E";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Diciembre",e*.06,hH*.72);
+        r.fillText("Diciembre",e*.06,nameY);
 
-        // Año — pequeño, semitransparente
-        r.font=`400 ${Math.round(fs*.3)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",e*.065,hH*.92);
+        // Año — pequeño, gris
+        r.font=`300 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        r.fillStyle="#AEAEB2";
+        r.fillText("2026",e*.063,nameY+Math.round(e*.042));
 
-        // Separador sutil bajo la cabecera
-        r.fillStyle="rgba(0,0,0,0.04)";
-        r.fillRect(0,hH,e,2);
-
-        // Días de la semana
+        // Días de la semana — gris muy claro, finos
         const colW=e/7;
-        const wdY=hH+lh*1.5;
-        r.font=`500 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        const wdY=nameY+e*.10;
+        r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#5A8FC8":"#AAAAAA";
+            r.fillStyle="#C7C7CC";
             r.textAlign="center";
             r.fillText(d,colW*i+colW/2,wdY);
         });
 
-        // Línea divisora bajo días de semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(e*.04,hH+lh*2.2);
-        r.lineTo(e*.96,hH+lh*2.2);
-        r.stroke();
-
-        // Números de días
-        const gY=hH+lh*2.8;
-        const cH=(t-gY-lh*2)/1;
-        const rows=Math.ceil((2+31)/7);
-        const cellH=(t-gY-lh*2)/rows;
+        // Grid de días — sin líneas, solo números
+        const gridTop=wdY+e*.055;
+        const gridH=t-gridTop-e*.08;
+        const cellH=gridH/5;
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=2;sl<2+31;sl++){
             const col=sl%7;
             const row=Math.floor(sl/7);
             const cx=colW*col+colW/2;
-            const cy=gY+row*cellH+cellH/2;
+            const cy=gridTop+row*cellH+cellH/2;
             const isWE=col===0||col===6;
             const isToday=day===-1;
 
             if(isToday){
-                // Círculo de color para hoy
+                // Círculo de color — solo para hoy
                 r.beginPath();
-                r.arc(cx,cy,Math.min(colW,cellH)*.38,0,Math.PI*2);
+                r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5A8FC8";
                 r.fill();
-                r.font=`700 ${Math.round(e*.028)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#5A8FC8BB";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#AEAEB2";
             } else {
-                r.font=`400 ${Math.round(e*.026)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#2A2A2A";
+                r.font=`400 ${Math.round(e*.032)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.fillStyle="#1C1C1E";
             }
             r.textAlign="center";
             r.textBaseline="middle";
@@ -60228,37 +59942,23 @@ const sc11 = {
             if(day>31)break;
         }
 
-        // Perforaciones espiral arriba
-        const hN=14,hS=e/(hN+1);
-        for(let i=1;i<=hN;i++){
-            // Aro metálico
-            r.beginPath();
-            r.arc(hS*i,7,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
-            r.fill();
-            r.beginPath();
-            r.arc(hS*i,7,4,0,Math.PI*2);
-            r.fillStyle="rgba(255,255,255,0.9)";
-            r.fill();
-        }
-
-        // Franja de corte inferior
-        const sY=t-lh*2;
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.setLineDash([5,6]);
+        // Línea de corte inferior — muy discreta
+        const sY=t-e*.055;
+        r.setLineDash([4,6]);
+        r.strokeStyle="rgba(0,0,0,0.1)";
         r.lineWidth=1;
         r.beginPath();
-        r.moveTo(0,sY);
-        r.lineTo(e,sY);
+        r.moveTo(e*.04,sY);
+        r.lineTo(e*.96,sY);
         r.stroke();
         r.setLineDash([]);
 
         // Perforaciones de corte
-        const pN=24,pS=e/(pN+1);
+        const pN=22,pS=e/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pS*i,sY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pS*i,sY,2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.12)";
             r.fill();
         }
     },
