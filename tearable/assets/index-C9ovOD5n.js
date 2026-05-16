@@ -58731,19 +58731,31 @@ const calImg = [];
 const mb = {
     id:"cal-enero",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=0;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#7B9EBE";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -58753,6 +58765,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -58760,34 +58773,37 @@ const mb = {
         r.fillText("Enero",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#7B9EBEBB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#7B9EBE":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=4;sl<4+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7B9EBE";r.fill();
@@ -58795,11 +58811,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#7B9EBEBB":"#2A2A2E";
+                r.fillStyle=isWE?"#7B9EBE":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -58807,49 +58823,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -58858,19 +58870,31 @@ const mb = {
   , gb = {
     id:"cal-febrero",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=1;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#E8A598";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -58880,6 +58904,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -58887,34 +58912,37 @@ const mb = {
         r.fillText("Febrero",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#E8A598BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#E8A598":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/4;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=0;sl<0+28;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8A598";r.fill();
@@ -58922,11 +58950,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#E8A598BB":"#2A2A2E";
+                r.fillStyle=isWE?"#E8A598":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>28)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -58934,49 +58962,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -58985,19 +59009,31 @@ const mb = {
   , vb = {
     id:"cal-marzo",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=2;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#7BBC9A";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59007,6 +59043,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59014,34 +59051,37 @@ const mb = {
         r.fillText("Marzo",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#7BBC9ABB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#7BBC9A":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=0;sl<0+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7BBC9A";r.fill();
@@ -59049,11 +59089,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#7BBC9ABB":"#2A2A2E";
+                r.fillStyle=isWE?"#7BBC9A":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59061,49 +59101,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59112,19 +59148,31 @@ const mb = {
   , w4 = {
     id:"cal-abril",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=3;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#C4A0C8";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59134,6 +59182,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59141,34 +59190,37 @@ const mb = {
         r.fillText("Abril",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#C4A0C8BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#C4A0C8":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=3;sl<3+30;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C4A0C8";r.fill();
@@ -59176,11 +59228,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#C4A0C8BB":"#2A2A2E";
+                r.fillStyle=isWE?"#C4A0C8":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59188,49 +59240,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59239,19 +59287,31 @@ const mb = {
   , C4 = {
     id:"cal-mayo",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=4;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#E8765A";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59261,6 +59321,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59268,34 +59329,37 @@ const mb = {
         r.fillText("Mayo",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#E8765ABB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#E8765A":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/6;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=5;sl<5+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===14;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8765A";r.fill();
@@ -59303,11 +59367,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#E8765ABB":"#2A2A2E";
+                r.fillStyle=isWE?"#E8765A":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59315,49 +59379,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59366,19 +59426,31 @@ const mb = {
   , yb = {
     id:"cal-junio",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=5;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#5BB5D5";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59388,6 +59460,7 @@ const mb = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59395,34 +59468,37 @@ const mb = {
         r.fillText("Junio",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#5BB5D5BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#5BB5D5":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=1;sl<1+30;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5BB5D5";r.fill();
@@ -59430,11 +59506,11 @@ const mb = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#5BB5D5BB":"#2A2A2E";
+                r.fillStyle=isWE?"#5BB5D5":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59442,49 +59518,45 @@ const mb = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59493,19 +59565,31 @@ const mb = {
 const sc6 = {
     id:"cal-julio",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=6;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#F0A45A";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59515,6 +59599,7 @@ const sc6 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59522,34 +59607,37 @@ const sc6 = {
         r.fillText("Julio",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#F0A45ABB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#F0A45A":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=3;sl<3+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#F0A45A";r.fill();
@@ -59557,11 +59645,11 @@ const sc6 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#F0A45ABB":"#2A2A2E";
+                r.fillStyle=isWE?"#F0A45A":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59569,49 +59657,45 @@ const sc6 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59620,19 +59704,31 @@ const sc6 = {
 const sc7 = {
     id:"cal-agosto",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=7;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#E07878";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59642,6 +59738,7 @@ const sc7 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59649,34 +59746,37 @@ const sc7 = {
         r.fillText("Agosto",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#E07878BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#E07878":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/6;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=6;sl<6+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E07878";r.fill();
@@ -59684,11 +59784,11 @@ const sc7 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#E07878BB":"#2A2A2E";
+                r.fillStyle=isWE?"#E07878":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59696,49 +59796,45 @@ const sc7 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59747,19 +59843,31 @@ const sc7 = {
 const sc8 = {
     id:"cal-septiembre",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=8;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#C8965A";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59769,6 +59877,7 @@ const sc8 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59776,34 +59885,37 @@ const sc8 = {
         r.fillText("Septiembre",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#C8965ABB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#C8965A":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=2;sl<2+30;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C8965A";r.fill();
@@ -59811,11 +59923,11 @@ const sc8 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#C8965ABB":"#2A2A2E";
+                r.fillStyle=isWE?"#C8965A":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59823,49 +59935,45 @@ const sc8 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -59874,19 +59982,31 @@ const sc8 = {
 const sc9 = {
     id:"cal-octubre",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=9;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#7AAB7A";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -59896,6 +60016,7 @@ const sc9 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -59903,34 +60024,37 @@ const sc9 = {
         r.fillText("Octubre",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#7AAB7ABB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#7AAB7A":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=4;sl<4+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7AAB7A";r.fill();
@@ -59938,11 +60062,11 @@ const sc9 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#7AAB7ABB":"#2A2A2E";
+                r.fillStyle=isWE?"#7AAB7A":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -59950,49 +60074,45 @@ const sc9 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -60001,19 +60121,31 @@ const sc9 = {
 const sc10 = {
     id:"cal-noviembre",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=10;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#9898C8";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -60023,6 +60155,7 @@ const sc10 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -60030,34 +60163,37 @@ const sc10 = {
         r.fillText("Noviembre",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#9898C8BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#9898C8":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=0;sl<0+30;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#9898C8";r.fill();
@@ -60065,11 +60201,11 @@ const sc10 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#9898C8BB":"#2A2A2E";
+                r.fillStyle=isWE?"#9898C8":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>30)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -60077,49 +60213,45 @@ const sc10 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
@@ -60128,19 +60260,31 @@ const sc10 = {
 const sc11 = {
     id:"cal-diciembre",
     render:(r,e,t,n,s)=>{
+        // ── DINÁMICO: año y días calculados en tiempo real ──
+        const now=new Date();
+        const year=now.getFullYear();
+        const monthIdx=11;
+        const firstDay=new Date(year,monthIdx,1).getDay();      // 0=Dom
+        const daysInMonth=new Date(year,monthIdx+1,0).getDate(); // días reales
+        const rows=Math.ceil((firstDay+daysInMonth)/7);
+        const todayD=(now.getMonth()===monthIdx&&now.getFullYear()===year)?now.getDate():-1;
+
         const pad=e*.05;
-        const hH=t*.16;
-        const footH=t*.14;
+        const hH=t*.15;
+        const footH=t*.16;
         const bodyH=t-hH-footH;
         const innerW=e-pad*2;
         const colW=innerW/7;
 
+        // Fondo
         r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
+        // Cabecera
         r.fillStyle="#5A8FC8";
         r.fillRect(0,0,e,hH);
 
+        // Espirales
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
@@ -60150,6 +60294,7 @@ const sc11 = {
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
+        // Nombre mes + año dinámico
         const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
@@ -60157,34 +60302,37 @@ const sc11 = {
         r.fillText("Diciembre",pad,hH*.75);
         r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
         r.fillStyle="rgba(255,255,255,0.72)";
-        r.fillText("2026",pad+2,hH*.93);
+        r.fillText(String(year),pad+2,hH*.93);
 
+        // Cuerpo
         r.fillStyle="#EEEEF0";
         r.fillRect(0,hH,e,bodyH);
 
-        const wdSize=Math.round(e*.042);
-        const wdY=hH+bodyH*.08;
-        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días semana
+        const wdSize=Math.round(e*.048);
+        const wdY=hH+bodyH*.09;
+        r.font=`600 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
-            r.fillStyle=(i===0||i===6)?"#5A8FC8BB":"#999999";
+            r.fillStyle=(i===0||i===6)?"#5A8FC8":"#777777";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        const gridTop=hH+bodyH*.17;
-        const gridH=bodyH*.81;
-        const cellH=gridH/5;
-        const numSize=Math.round(e*.042);
-        const circR=Math.min(colW,cellH)*.36;
+        // Grid días — dinámico
+        const gridTop=hH+bodyH*.18;
+        const gridH=bodyH*.80;
+        const cellH=gridH/rows;
+        const numSize=Math.round(e*.044);
+        const circR=Math.min(colW*.4,cellH*.4);
 
         let day=1;
-        for(let sl=2;sl<2+31;sl++){
+        for(let sl=firstDay;sl<firstDay+daysInMonth;sl++){
             const col=sl%7,row=Math.floor(sl/7);
             const cx=pad+colW*col+colW/2;
-            const cy=gridTop+row*cellH+cellH*.45;
+            const cy=gridTop+row*cellH+cellH*.42;
             const isWE=col===0||col===6;
-            const isToday=day===-1;
+            const isToday=day===todayD;
             if(isToday){
                 r.beginPath();r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5A8FC8";r.fill();
@@ -60192,11 +60340,11 @@ const sc11 = {
                 r.fillStyle="#FFFFFF";
             } else {
                 r.font=`400 ${numSize}px -apple-system,sans-serif`;
-                r.fillStyle=isWE?"#5A8FC8BB":"#2A2A2E";
+                r.fillStyle=isWE?"#5A8FC8":"#2A2A2E";
             }
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(day,cx,cy);
-            day++;if(day>31)break;
+            day++;if(day>daysInMonth)break;
         }
 
         // ── PIE ────────────────────────────────────────────
@@ -60204,49 +60352,45 @@ const sc11 = {
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
 
+        // Línea perforada
         r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();r.moveTo(pad,footY);r.lineTo(e-pad,footY);r.stroke();
         r.setLineDash([]);
 
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.18)";r.fill();
         }
 
+        // Botones
         const btnColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
-        const btnSymbols=["✎","◐","☺","↺"];
         const btnLabels=["Nota","Color","Emoji","Volver"];
+        const btnSymbols=["✎","◈","☺","↺"];
         const iconSpacing=innerW/4;
-        const iconR=Math.min(footH*.26,e*.04);
-        const iconCY=footY+footH*.35;
-        const labelCY=footY+footH*.73;
-
-        // Tamaño del label más grande y color más oscuro
-        const labelSize=Math.max(Math.round(e*.03),12);
+        const iconR=Math.min(footH*.28,e*.042);
+        const iconCY=footY+footH*.36;
+        const labelCY=footY+footH*.72;
+        const labelSize=Math.max(Math.round(e*.032),13);
 
         btnColors.forEach((col,i)=>{
             const ix=pad+iconSpacing*i+iconSpacing/2;
-
-            // Sombra suave bajo el círculo
             r.beginPath();r.arc(ix,iconCY+2,iconR,0,Math.PI*2);
             r.fillStyle="rgba(0,0,0,0.10)";r.fill();
-
-            // Círculo de color sólido
+            r.save();
             r.beginPath();r.arc(ix,iconCY,iconR,0,Math.PI*2);
             r.fillStyle=col;r.fill();
-
-            // Símbolo blanco encima
-            r.font=`600 ${Math.round(iconR*1.1)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.restore();
+            r.font=`700 ${Math.round(iconR*1.0)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
             r.fillStyle="#FFFFFF";
             r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnSymbols[i],ix,iconCY);
-
-            // Label — más grande, más oscuro, bold
-            r.font=`600 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#4A4A4A";
+            r.font=`700 ${labelSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+            r.fillStyle="#3A3A3A";
+            r.textAlign="center";r.textBaseline="middle";
             r.fillText(btnLabels[i],ix,labelCY);
         });
     },
