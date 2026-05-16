@@ -11,14 +11,9 @@
     <script type="module" crossorigin src="./assets/index-C9ovOD5n.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-zhVzAvgK.css">
     <style>
-      /* Sobrescribir Tearable CSS para dejar espacio al footer */
-      #root {
-        height: calc(100% - 100px) !important;
-        bottom: 100px !important;
-        top: 0 !important;
-      }
+      /* NO tocamos #root — Tearable lo necesita intacto al 100% */
 
-      /* ── FOOTER FIJO ─────────────────────────────────────── */
+      /* ── FOOTER — encima del canvas, pointer-events solo en sus hijos ── */
       #tyel-footer {
         position: fixed;
         bottom: 0; left: 0; right: 0;
@@ -31,15 +26,18 @@
         padding: 0 5%;
         z-index: 9999;
         box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-        touch-action: none;
+        /* CLAVE: el footer pasa los eventos al canvas excepto en los botones */
+        pointer-events: none;
       }
 
+      /* Solo los botones capturan eventos */
       .tyel-btn {
         display: flex; flex-direction: column;
         align-items: center; gap: 5px;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
         user-select: none; flex: 1;
+        pointer-events: all; /* activo solo aquí */
       }
 
       .tyel-btn-circle {
@@ -58,25 +56,19 @@
         font-size: 12px; font-weight: 700; color: #3A3A3A;
       }
 
-      /* ── OVERLAY — siempre en DOM, z-index sobre canvas ─── */
+      /* ── OVERLAY ─────────────────────────────────────────── */
       #tyel-overlay {
         position: fixed; inset: 0;
         background: rgba(0,0,0,0.3);
-        /* CLAVE: empieza invisible e inactivo */
         opacity: 0;
         pointer-events: none;
-        z-index: 10000; /* encima del canvas Tearable */
+        z-index: 10000;
         transition: opacity 0.25s ease;
-        backdrop-filter: blur(0px);
-        -webkit-backdrop-filter: blur(0px);
       }
 
-      /* Cuando hay panel abierto — visible y activo */
       #tyel-overlay.show {
         opacity: 1;
         pointer-events: all;
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
       }
 
       /* ── PANELES ─────────────────────────────────────────── */
@@ -86,11 +78,11 @@
         background: #ffffff;
         border-radius: 20px 20px 0 0;
         box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
-        z-index: 10001; /* encima del overlay */
+        z-index: 10001;
         padding: 20px 24px 40px;
         transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        touch-action: pan-y;
+        pointer-events: all;
       }
 
       .tyel-panel.open { bottom: 0; }
@@ -106,6 +98,19 @@
         font-size: 17px; font-weight: 700;
         color: #1C1C1E; margin-bottom: 16px;
       }
+
+      .tyel-panel-close {
+        position: absolute;
+        top: 16px; right: 20px;
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: #F2F2F7;
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; color: #636366;
+      }
+
+      .tyel-panel-close:active { background: #E5E5EA; }
 
       .tyel-panel-textarea {
         width: 100%; min-height: 100px;
@@ -131,21 +136,6 @@
       }
 
       .tyel-panel-save:active { background: #4a73b0; }
-
-      /* Botón X para cerrar en esquina del panel */
-      .tyel-panel-close {
-        position: absolute;
-        top: 16px; right: 20px;
-        width: 28px; height: 28px;
-        border-radius: 50%;
-        background: #F2F2F7;
-        border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 14px; color: #636366;
-        font-family: -apple-system, sans-serif;
-      }
-
-      .tyel-panel-close:active { background: #E5E5EA; }
 
       .tyel-color-grid {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -196,10 +186,8 @@
   <body>
     <div id="root"></div>
 
-    <!-- Overlay — siempre en DOM, toca aquí = cierra panel -->
     <div id="tyel-overlay"></div>
 
-    <!-- Footer fijo -->
     <div id="tyel-footer">
       <div class="tyel-btn" onclick="tyelOpen('nota')">
         <div class="tyel-btn-circle" style="background:#d7927c;">✎</div>
@@ -219,8 +207,7 @@
       </div>
     </div>
 
-    <!-- Panel Nota -->
-    <div class="tyel-panel" id="panel-nota" style="position:fixed;">
+    <div class="tyel-panel" id="panel-nota">
       <div class="tyel-panel-handle" onclick="tyelCloseAll()"></div>
       <button class="tyel-panel-close" onclick="tyelCloseAll()">✕</button>
       <div class="tyel-panel-title" id="panel-nota-title">Nota del día</div>
@@ -229,16 +216,14 @@
       <button class="tyel-panel-save" onclick="tyelSaveNota()">Guardar</button>
     </div>
 
-    <!-- Panel Color -->
-    <div class="tyel-panel" id="panel-color" style="position:fixed;">
+    <div class="tyel-panel" id="panel-color">
       <div class="tyel-panel-handle" onclick="tyelCloseAll()"></div>
       <button class="tyel-panel-close" onclick="tyelCloseAll()">✕</button>
       <div class="tyel-panel-title">Resaltar día</div>
       <div class="tyel-color-grid" id="color-grid"></div>
     </div>
 
-    <!-- Panel Emoji -->
-    <div class="tyel-panel" id="panel-emoji" style="position:fixed;">
+    <div class="tyel-panel" id="panel-emoji">
       <div class="tyel-panel-handle" onclick="tyelCloseAll()"></div>
       <button class="tyel-panel-close" onclick="tyelCloseAll()">✕</button>
       <div class="tyel-panel-title">Añadir emoji</div>
@@ -265,9 +250,8 @@
     let calData = JSON.parse(localStorage.getItem('tyel_data') || '{}');
     let selectedDay = null, selectedMonth = null, selectedYear = null;
 
-    // Cerrar al tocar el overlay
     document.getElementById('tyel-overlay').addEventListener('click', tyelCloseAll);
-    document.getElementById('tyel-overlay').addEventListener('touchstart', function(e) {
+    document.getElementById('tyel-overlay').addEventListener('touchend', function(e) {
       e.preventDefault();
       tyelCloseAll();
     }, { passive: false });
@@ -311,10 +295,9 @@
         document.getElementById('panel-emoji').classList.add('open');
       } else if (type === 'volver') {
         tyelToast('Mes recuperado ↺');
-        return; // no abre panel, no overlay
+        return;
       }
 
-      // Activar overlay con transición
       requestAnimationFrame(() => {
         document.getElementById('tyel-overlay').classList.add('show');
       });
