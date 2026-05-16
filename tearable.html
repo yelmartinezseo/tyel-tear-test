@@ -8,12 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
     <title>T-Yel · Calendario</title>
-    <script type="module" crossorigin src="./assets/index-C9ovOD5n.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-zhVzAvgK.css">
+    <!-- Rutas correctas: tearable/assets/ no ./assets/ -->
+    <script type="module" crossorigin src="./tearable/assets/index-C9ovOD5n.js"></script>
+    <link rel="stylesheet" crossorigin href="./tearable/assets/index-zhVzAvgK.css">
     <style>
-      /* NO tocamos #root — Tearable lo necesita intacto al 100% */
-
-      /* ── FOOTER — encima del canvas, pointer-events solo en sus hijos ── */
       #tyel-footer {
         position: fixed;
         bottom: 0; left: 0; right: 0;
@@ -26,18 +24,16 @@
         padding: 0 5%;
         z-index: 9999;
         box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-        /* CLAVE: el footer pasa los eventos al canvas excepto en los botones */
         pointer-events: none;
       }
 
-      /* Solo los botones capturan eventos */
       .tyel-btn {
         display: flex; flex-direction: column;
         align-items: center; gap: 5px;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
         user-select: none; flex: 1;
-        pointer-events: all; /* activo solo aquí */
+        pointer-events: all;
       }
 
       .tyel-btn-circle {
@@ -56,7 +52,6 @@
         font-size: 12px; font-weight: 700; color: #3A3A3A;
       }
 
-      /* ── OVERLAY ─────────────────────────────────────────── */
       #tyel-overlay {
         position: fixed; inset: 0;
         background: rgba(0,0,0,0.3);
@@ -71,7 +66,6 @@
         pointer-events: all;
       }
 
-      /* ── PANELES ─────────────────────────────────────────── */
       .tyel-panel {
         position: fixed;
         bottom: -110%; left: 0; right: 0;
@@ -90,8 +84,7 @@
       .tyel-panel-handle {
         width: 36px; height: 4px;
         background: #D1D1D6; border-radius: 2px;
-        margin: 0 auto 16px;
-        cursor: pointer;
+        margin: 0 auto 16px; cursor: pointer;
       }
 
       .tyel-panel-title {
@@ -100,17 +93,12 @@
       }
 
       .tyel-panel-close {
-        position: absolute;
-        top: 16px; right: 20px;
-        width: 28px; height: 28px;
-        border-radius: 50%;
-        background: #F2F2F7;
-        border: none; cursor: pointer;
+        position: absolute; top: 16px; right: 20px;
+        width: 28px; height: 28px; border-radius: 50%;
+        background: #F2F2F7; border: none; cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         font-size: 14px; color: #636366;
       }
-
-      .tyel-panel-close:active { background: #E5E5EA; }
 
       .tyel-panel-textarea {
         width: 100%; min-height: 100px;
@@ -119,7 +107,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: 16px; color: #1C1C1E;
         resize: none; outline: none; background: #F9F9F9;
-        transition: border-color 0.15s;
         box-sizing: border-box;
       }
 
@@ -129,13 +116,10 @@
       .tyel-panel-save {
         width: 100%; margin-top: 12px; padding: 14px;
         background: #5884c1; color: #fff; border: none;
-        border-radius: 12px;
+        border-radius: 12px; font-size: 16px; font-weight: 700;
+        cursor: pointer; box-sizing: border-box;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        font-size: 16px; font-weight: 700; cursor: pointer;
-        box-sizing: border-box;
       }
-
-      .tyel-panel-save:active { background: #4a73b0; }
 
       .tyel-color-grid {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -160,24 +144,19 @@
       .tyel-emoji-btn {
         aspect-ratio: 1; display: flex;
         align-items: center; justify-content: center;
-        font-size: 24px;
-        background: #F2F2F7; border-radius: 10px;
-        cursor: pointer; transition: transform 0.1s;
+        font-size: 24px; background: #F2F2F7;
+        border-radius: 10px; cursor: pointer;
       }
 
-      .tyel-emoji-btn:active { transform: scale(0.88); }
-
       #tyel-toast {
-        position: fixed;
-        bottom: 116px; left: 50%;
+        position: fixed; bottom: 116px; left: 50%;
         transform: translateX(-50%) translateY(20px);
         background: #1C1C1E; color: #fff;
         padding: 10px 20px; border-radius: 100px;
-        font-family: -apple-system, sans-serif;
-        font-size: 13px; font-weight: 600;
-        opacity: 0;
+        font-size: 13px; font-weight: 600; opacity: 0;
         transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         z-index: 10002; white-space: nowrap; pointer-events: none;
+        font-family: -apple-system, sans-serif;
       }
 
       #tyel-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -185,7 +164,6 @@
   </head>
   <body>
     <div id="root"></div>
-
     <div id="tyel-overlay"></div>
 
     <div id="tyel-footer">
@@ -235,117 +213,92 @@
     <script>
     const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
       'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-    const COLORS = [
-      '#FFD60A','#FF9F0A','#FF6B6B','#FF2D55','#BF5AF2',
-      '#5856D6','#007AFF','#34C759','#00C7BE','#636366',
-    ];
-
-    const EMOJIS = [
-      '⭐','❤️','🎯','✅','⚠️','💡',
-      '🎉','📅','🔔','🎂','💬','✏️',
-      '🏃','💪','🍎','☕','🌙','🌟',
-    ];
+    const COLORS = ['#FFD60A','#FF9F0A','#FF6B6B','#FF2D55','#BF5AF2',
+      '#5856D6','#007AFF','#34C759','#00C7BE','#636366'];
+    const EMOJIS = ['⭐','❤️','🎯','✅','⚠️','💡','🎉','📅','🔔','🎂','💬','✏️',
+      '🏃','💪','🍎','☕','🌙','🌟'];
 
     let calData = JSON.parse(localStorage.getItem('tyel_data') || '{}');
-    let selectedDay = null, selectedMonth = null, selectedYear = null;
+    let selectedDay=null, selectedMonth=null, selectedYear=null;
 
     document.getElementById('tyel-overlay').addEventListener('click', tyelCloseAll);
-    document.getElementById('tyel-overlay').addEventListener('touchend', function(e) {
-      e.preventDefault();
-      tyelCloseAll();
-    }, { passive: false });
+    document.getElementById('tyel-overlay').addEventListener('touchend', e => {
+      e.preventDefault(); tyelCloseAll();
+    }, {passive:false});
 
-    (function buildGrids(){
-      const cg = document.getElementById('color-grid');
-      COLORS.forEach(c => {
-        const sw = document.createElement('div');
-        sw.className = 'tyel-color-swatch';
-        sw.style.background = c;
-        sw.onclick = () => tyelSaveColor(c);
-        cg.appendChild(sw);
+    (function(){
+      const cg=document.getElementById('color-grid');
+      COLORS.forEach(c=>{
+        const sw=document.createElement('div');
+        sw.className='tyel-color-swatch'; sw.style.background=c;
+        sw.onclick=()=>tyelSaveColor(c); cg.appendChild(sw);
       });
-      const eg = document.getElementById('emoji-grid');
-      EMOJIS.forEach(em => {
-        const btn = document.createElement('div');
-        btn.className = 'tyel-emoji-btn';
-        btn.textContent = em;
-        btn.onclick = () => tyelSaveEmoji(em);
-        eg.appendChild(btn);
+      const eg=document.getElementById('emoji-grid');
+      EMOJIS.forEach(em=>{
+        const btn=document.createElement('div');
+        btn.className='tyel-emoji-btn'; btn.textContent=em;
+        btn.onclick=()=>tyelSaveEmoji(em); eg.appendChild(btn);
       });
     })();
 
-    function tyelOpen(type) {
+    function tyelOpen(type){
       tyelCloseAll();
-      const now = new Date();
-      selectedDay = now.getDate();
-      selectedMonth = now.getMonth();
-      selectedYear = now.getFullYear();
-
-      if (type === 'nota') {
-        const key = tyelKey();
-        document.getElementById('nota-input').value = (calData[key] || {}).nota || '';
-        document.getElementById('panel-nota-title').textContent =
+      const now=new Date();
+      selectedDay=now.getDate(); selectedMonth=now.getMonth(); selectedYear=now.getFullYear();
+      if(type==='nota'){
+        const key=tyelKey();
+        document.getElementById('nota-input').value=(calData[key]||{}).nota||'';
+        document.getElementById('panel-nota-title').textContent=
           `Nota · ${selectedDay} de ${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
         document.getElementById('panel-nota').classList.add('open');
-        setTimeout(() => document.getElementById('nota-input').focus(), 400);
-      } else if (type === 'color') {
+        setTimeout(()=>document.getElementById('nota-input').focus(),400);
+      } else if(type==='color'){
         document.getElementById('panel-color').classList.add('open');
-      } else if (type === 'emoji') {
+      } else if(type==='emoji'){
         document.getElementById('panel-emoji').classList.add('open');
-      } else if (type === 'volver') {
-        tyelToast('Mes recuperado ↺');
-        return;
+      } else if(type==='volver'){
+        tyelToast('Mes recuperado ↺'); return;
       }
-
-      requestAnimationFrame(() => {
-        document.getElementById('tyel-overlay').classList.add('show');
-      });
+      requestAnimationFrame(()=>document.getElementById('tyel-overlay').classList.add('show'));
     }
 
-    function tyelCloseAll() {
-      document.querySelectorAll('.tyel-panel').forEach(p => p.classList.remove('open'));
+    function tyelCloseAll(){
+      document.querySelectorAll('.tyel-panel').forEach(p=>p.classList.remove('open'));
       document.getElementById('tyel-overlay').classList.remove('show');
     }
 
-    function tyelKey() {
+    function tyelKey(){
       return `${selectedYear}-${String(selectedMonth+1).padStart(2,'0')}-${String(selectedDay).padStart(2,'0')}`;
     }
 
-    function tyelSaveNota() {
-      const key = tyelKey();
-      const val = document.getElementById('nota-input').value.trim();
-      if (!calData[key]) calData[key] = {};
-      if (val) calData[key].nota = val;
-      else delete calData[key].nota;
-      localStorage.setItem('tyel_data', JSON.stringify(calData));
-      tyelCloseAll();
-      tyelToast('Nota guardada ✓');
+    function tyelSaveNota(){
+      const key=tyelKey(), val=document.getElementById('nota-input').value.trim();
+      if(!calData[key])calData[key]={};
+      if(val)calData[key].nota=val; else delete calData[key].nota;
+      localStorage.setItem('tyel_data',JSON.stringify(calData));
+      tyelCloseAll(); tyelToast('Nota guardada ✓');
     }
 
-    function tyelSaveColor(color) {
-      const key = tyelKey();
-      if (!calData[key]) calData[key] = {};
-      calData[key].color = color;
-      localStorage.setItem('tyel_data', JSON.stringify(calData));
-      tyelCloseAll();
-      tyelToast('Color aplicado ✓');
+    function tyelSaveColor(color){
+      const key=tyelKey();
+      if(!calData[key])calData[key]={};
+      calData[key].color=color;
+      localStorage.setItem('tyel_data',JSON.stringify(calData));
+      tyelCloseAll(); tyelToast('Color aplicado ✓');
     }
 
-    function tyelSaveEmoji(emoji) {
-      const key = tyelKey();
-      if (!calData[key]) calData[key] = {};
-      calData[key].emoji = emoji;
-      localStorage.setItem('tyel_data', JSON.stringify(calData));
-      tyelCloseAll();
-      tyelToast(`${emoji} guardado ✓`);
+    function tyelSaveEmoji(emoji){
+      const key=tyelKey();
+      if(!calData[key])calData[key]={};
+      calData[key].emoji=emoji;
+      localStorage.setItem('tyel_data',JSON.stringify(calData));
+      tyelCloseAll(); tyelToast(`${emoji} guardado ✓`);
     }
 
-    function tyelToast(msg) {
-      const t = document.getElementById('tyel-toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2200);
+    function tyelToast(msg){
+      const t=document.getElementById('tyel-toast');
+      t.textContent=msg; t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),2200);
     }
     </script>
   </body>
