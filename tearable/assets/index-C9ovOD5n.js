@@ -58731,68 +58731,64 @@ const calImg = [];
 const mb = {
     id:"cal-enero",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#7B9EBE";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Enero",pad,hH*.72);
+        r.fillText("Enero",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7B9EBEBB":"#AAAAAA";
+            r.fillStyle=isWE?"#7B9EBEBB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=4;sl<4+31;sl++){
@@ -58808,13 +58804,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7B9EBE";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7B9EBECC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#7B9EBEBB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -58826,45 +58822,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -58873,82 +58835,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
   , gb = {
     id:"cal-febrero",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#E8A598";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Febrero",pad,hH*.72);
+        r.fillText("Febrero",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E8A598BB":"#AAAAAA";
+            r.fillStyle=isWE?"#E8A598BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/4;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+28;sl++){
@@ -58964,13 +58951,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8A598";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E8A598CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#E8A598BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -58982,45 +58969,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59029,82 +58982,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
   , vb = {
     id:"cal-marzo",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#7BBC9A";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Marzo",pad,hH*.72);
+        r.fillText("Marzo",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7BBC9ABB":"#AAAAAA";
+            r.fillStyle=isWE?"#7BBC9ABB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+31;sl++){
@@ -59120,13 +59098,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7BBC9A";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7BBC9ACC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#7BBC9ABB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59138,45 +59116,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59185,82 +59129,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
   , w4 = {
     id:"cal-abril",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#C4A0C8";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Abril",pad,hH*.72);
+        r.fillText("Abril",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#C4A0C8BB":"#AAAAAA";
+            r.fillStyle=isWE?"#C4A0C8BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=3;sl<3+30;sl++){
@@ -59276,13 +59245,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C4A0C8";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#C4A0C8CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#C4A0C8BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59294,45 +59263,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59341,82 +59276,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
   , C4 = {
     id:"cal-mayo",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#E8765A";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Mayo",pad,hH*.72);
+        r.fillText("Mayo",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E8765ABB":"#AAAAAA";
+            r.fillStyle=isWE?"#E8765ABB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/6;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=5;sl<5+31;sl++){
@@ -59432,13 +59392,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E8765A";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E8765ACC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#E8765ABB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59450,45 +59410,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59497,82 +59423,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
   , yb = {
     id:"cal-junio",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#5BB5D5";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Junio",pad,hH*.72);
+        r.fillText("Junio",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#5BB5D5BB":"#AAAAAA";
+            r.fillStyle=isWE?"#5BB5D5BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=1;sl<1+30;sl++){
@@ -59588,13 +59539,13 @@ const mb = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5BB5D5";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#5BB5D5CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#5BB5D5BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59606,45 +59557,11 @@ const mb = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59653,82 +59570,107 @@ const mb = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc6 = {
     id:"cal-julio",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#F0A45A";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Julio",pad,hH*.72);
+        r.fillText("Julio",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#F0A45ABB":"#AAAAAA";
+            r.fillStyle=isWE?"#F0A45ABB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=3;sl<3+31;sl++){
@@ -59744,13 +59686,13 @@ const sc6 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#F0A45A";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#F0A45ACC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#F0A45ABB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59762,45 +59704,11 @@ const sc6 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59809,82 +59717,107 @@ const sc6 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc7 = {
     id:"cal-agosto",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#E07878";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Agosto",pad,hH*.72);
+        r.fillText("Agosto",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#E07878BB":"#AAAAAA";
+            r.fillStyle=isWE?"#E07878BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/6;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=6;sl<6+31;sl++){
@@ -59900,13 +59833,13 @@ const sc7 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#E07878";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#E07878CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#E07878BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -59918,45 +59851,11 @@ const sc7 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -59965,82 +59864,107 @@ const sc7 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc8 = {
     id:"cal-septiembre",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#C8965A";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Septiembre",pad,hH*.72);
+        r.fillText("Septiembre",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#C8965ABB":"#AAAAAA";
+            r.fillStyle=isWE?"#C8965ABB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=2;sl<2+30;sl++){
@@ -60056,13 +59980,13 @@ const sc8 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#C8965A";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#C8965ACC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#C8965ABB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -60074,45 +59998,11 @@ const sc8 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -60121,82 +60011,107 @@ const sc8 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc9 = {
     id:"cal-octubre",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#7AAB7A";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Octubre",pad,hH*.72);
+        r.fillText("Octubre",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#7AAB7ABB":"#AAAAAA";
+            r.fillStyle=isWE?"#7AAB7ABB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=4;sl<4+31;sl++){
@@ -60212,13 +60127,13 @@ const sc9 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#7AAB7A";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#7AAB7ACC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#7AAB7ABB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -60230,45 +60145,11 @@ const sc9 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -60277,82 +60158,107 @@ const sc9 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc10 = {
     id:"cal-noviembre",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#9898C8";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Noviembre",pad,hH*.72);
+        r.fillText("Noviembre",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#9898C8BB":"#AAAAAA";
+            r.fillStyle=isWE?"#9898C8BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=0;sl<0+30;sl++){
@@ -60368,13 +60274,13 @@ const sc10 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#9898C8";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#9898C8CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#9898C8BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -60386,45 +60292,11 @@ const sc10 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -60433,82 +60305,107 @@ const sc10 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
 const sc11 = {
     id:"cal-diciembre",
     render:(r,e,t,n,s)=>{
-        const pad=e*.055;          // margen lateral
-        const hH=t*.20;            // altura cabecera
-        const footH=t*.10;         // altura pie con controles
+        const pad=e*.05;
+        const hH=t*.16;
+        const footH=t*.13;
         const bodyH=t-hH-footH;
-        const innerW=e-pad*2;      // ancho interior con márgenes
+        const innerW=e-pad*2;
+        const colW=innerW/7;
 
-        // Fondo general — gris muy suave como en la referencia
-        r.fillStyle="#EEEEF0";
+        // Fondo gris suave
+        r.fillStyle="#E8E8EA";
         r.fillRect(0,0,e,t);
 
-        // Cabecera color suave
+        // Cabecera
         r.fillStyle="#5A8FC8";
         r.fillRect(0,0,e,hH);
 
-        // Perforaciones espiral — dentro del margen
+        // Perforaciones espiral
         const hN=12,hS=innerW/(hN+1);
         for(let i=1;i<=hN;i++){
             const hx=pad+hS*i;
-            r.beginPath();r.arc(hx,10,6,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.18)";r.fill();
-            r.beginPath();r.arc(hx,10,4,0,Math.PI*2);
+            r.beginPath();r.arc(hx,9,5.5,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.2)";r.fill();
+            r.beginPath();r.arc(hx,9,3.5,0,Math.PI*2);
             r.fillStyle="rgba(255,255,255,0.92)";r.fill();
         }
 
-        // Nombre del mes
-        const fs=Math.min(hH*.52,e*.13);
+        // Nombre del mes — grande y legible
+        const fs=Math.min(hH*.55,e*.11);
         r.font=`300 ${fs}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif`;
         r.fillStyle="#FFFFFF";
         r.textAlign="left";
         r.textBaseline="alphabetic";
-        r.fillText("Diciembre",pad,hH*.72);
+        r.fillText("Diciembre",pad,hH*.75);
+        r.font=`300 ${Math.round(fs*.32)}px -apple-system,sans-serif`;
+        r.fillStyle="rgba(255,255,255,0.72)";
+        r.fillText("2026",pad+2,hH*.93);
 
-        // Año
-        r.font=`300 ${Math.round(fs*.35)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-        r.fillStyle="rgba(255,255,255,0.75)";
-        r.fillText("2026",pad+2,hH*.92);
+        // ── CUERPO ─────────────────────────────────────────
+        r.fillStyle="#EEEEF0";
+        r.fillRect(0,hH,e,bodyH);
 
-        // Días de la semana — más grandes, visibles
-        const colW=innerW/7;
-        const wdY=hH+bodyH*.09;
-        r.font=`500 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+        // Días de la semana — más grandes y visibles
+        const wdSize=Math.round(e*.042);
+        const wdY=hH+bodyH*.08;
+        r.font=`500 ${wdSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
         r.textBaseline="middle";
         ["D","L","M","X","J","V","S"].forEach((d,i)=>{
             const isWE=i===0||i===6;
-            r.fillStyle=isWE?"#5A8FC8BB":"#AAAAAA";
+            r.fillStyle=isWE?"#5A8FC8BB":"#999999";
             r.textAlign="center";
             r.fillText(d,pad+colW*i+colW/2,wdY);
         });
 
-        // Línea separadora sutil bajo días semana
-        r.strokeStyle="rgba(0,0,0,0.06)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(pad,hH+bodyH*.16);
-        r.lineTo(e-pad,hH+bodyH*.16);
-        r.stroke();
-
-        // Grid de días
-        const gridTop=hH+bodyH*.19;
-        const gridH=bodyH*.78;
+        // Grid días — números más grandes
+        const gridTop=hH+bodyH*.17;
+        const gridH=bodyH*.81;
         const cellH=gridH/5;
-        const circR=Math.min(colW,cellH)*.36;
+        const numSize=Math.round(e*.042);
+        const circR=Math.min(colW,cellH)*.38;
 
         let day=1;
         for(let sl=2;sl<2+31;sl++){
@@ -60524,13 +60421,13 @@ const sc11 = {
                 r.arc(cx,cy,circR,0,Math.PI*2);
                 r.fillStyle="#5A8FC8";
                 r.fill();
-                r.font=`600 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`600 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#FFFFFF";
             } else if(isWE){
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-                r.fillStyle="#5A8FC8CC";
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
+                r.fillStyle="#5A8FC8BB";
             } else {
-                r.font=`400 ${Math.round(e*.034)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+                r.font=`400 ${numSize}px -apple-system,sans-serif`;
                 r.fillStyle="#2A2A2E";
             }
             r.textAlign="center";
@@ -60542,45 +60439,11 @@ const sc11 = {
 
         // ── PIE CON CONTROLES ──────────────────────────────
         const footY=hH+bodyH;
-
-        // Fondo pie — blanco con borde superior
         r.fillStyle="#FFFFFF";
         r.fillRect(0,footY,e,footH);
-        r.strokeStyle="rgba(0,0,0,0.08)";
-        r.lineWidth=1;
-        r.beginPath();
-        r.moveTo(0,footY);
-        r.lineTo(e,footY);
-        r.stroke();
 
-        // 4 iconos centrados en el pie
-        const icons=["✏️","🎨","😊","↩️"];
-        const labels=["Nota","Color","Emoji","Volver"];
-        const iconN=icons.length;
-        const iconSpacing=innerW/iconN;
-        const iconY=footY+footH*.38;
-        const labelY=footY+footH*.75;
-
-        icons.forEach((icon,i)=>{
-            const ix=pad+iconSpacing*i+iconSpacing/2;
-            // Fondo del botón — círculo suave
-            r.beginPath();
-            r.arc(ix,iconY,footH*.25,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.05)";
-            r.fill();
-            // Icono
-            r.font=`${Math.round(footH*.32)}px sans-serif`;
-            r.textAlign="center";
-            r.textBaseline="middle";
-            r.fillText(icon,ix,iconY);
-            // Label
-            r.font=`400 ${Math.round(e*.022)}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-            r.fillStyle="#8E8E93";
-            r.fillText(labels[i],ix,labelY);
-        });
-
-        // Línea de corte entre cuerpo y pie — perforada
-        r.setLineDash([4,6]);
+        // Línea perforada de corte
+        r.setLineDash([4,5]);
         r.strokeStyle="rgba(0,0,0,0.15)";
         r.lineWidth=1;
         r.beginPath();
@@ -60589,14 +60452,43 @@ const sc11 = {
         r.stroke();
         r.setLineDash([]);
 
-        // Perforaciones de corte
+        // Perforaciones
         const pN=20,pS=innerW/(pN+1);
         for(let i=1;i<=pN;i++){
             r.beginPath();
-            r.arc(pad+pS*i,footY,2.5,0,Math.PI*2);
-            r.fillStyle="rgba(0,0,0,0.15)";
+            r.arc(pad+pS*i,footY,2.2,0,Math.PI*2);
+            r.fillStyle="rgba(0,0,0,0.18)";
             r.fill();
         }
+
+        // 4 iconos con colores vivos
+        const icons=["✏️","🎨","😊","↩️"];
+        const labels=["Nota","Color","Emoji","Volver"];
+        const iconColors=["#d7927c","#a0bdb8","#b3afc6","#5884c1"];
+        const iconN=4;
+        const iconSpacing=innerW/iconN;
+        const iconCY=footY+footH*.38;
+        const iconR=footH*.22;
+        const labelCY=footY+footH*.78;
+
+        icons.forEach((icon,i)=>{
+            const ix=pad+iconSpacing*i+iconSpacing/2;
+            // Círculo de color vivo
+            r.beginPath();
+            r.arc(ix,iconCY,iconR,0,Math.PI*2);
+            r.fillStyle=iconColors[i];
+            r.fill();
+            // Icono emoji encima
+            r.font=`${Math.round(iconR*1.2)}px sans-serif`;
+            r.textAlign="center";
+            r.textBaseline="middle";
+            r.fillText(icon,ix,iconCY);
+            // Label
+            r.font=`400 ${Math.round(e*.024)}px -apple-system,sans-serif`;
+            r.fillStyle="#8E8E93";
+            r.textBaseline="middle";
+            r.fillText(labels[i],ix,labelCY);
+        });
     },
     getHitRegions:()=>[]
 }
