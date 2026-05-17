@@ -140,6 +140,8 @@ textarea:focus{border-color:#c9837a}
   <div id="stage">
     <div class="page" id="pback"></div>
     <div class="page" id="pfront"></div>
+    <!-- zona de drag: cubre solo la cabecera, encima de todo excepto paneles -->
+    <div id="dragzone" style="position:absolute;top:0;left:0;right:0;height:200px;z-index:10;cursor:ns-resize;touch-action:none;"></div>
 
     <div id="ov" onclick="closeAll()"></div>
     <div id="si"></div>
@@ -282,6 +284,13 @@ function build(){
   buildCal(cY,cM,document.getElementById('pfront'),true);
   const pf=document.getElementById('pfront');
   pf.style.cssText='z-index:2;transform:none;transition:none';
+  // Ajustar dragzone al tamaño real del header tras paint
+  requestAnimationFrame(()=>{
+    const hdr=document.querySelector('#pfront .ph');
+    if(hdr){
+      document.getElementById('dragzone').style.height=hdr.offsetHeight+'px';
+    }
+  });
   const h=document.getElementById('hint');
   h.classList.add('on');
   setTimeout(()=>h.classList.remove('on'),2400);
@@ -293,22 +302,22 @@ let drag=false,sy=0,torn=false,busy=false;
 function gy(e){return e.touches?e.touches[0].clientY:e.clientY}
 function pf(){return document.getElementById('pfront')}
 
-// Attach to stage — but only fire when NOT hitting a .dc (day cell)
-document.getElementById('stage').addEventListener('mousedown',startD);
-document.getElementById('stage').addEventListener('touchstart',startD,{passive:false});
+
+
+
 document.addEventListener('mousemove',moveD);
 document.addEventListener('touchmove',moveD,{passive:false});
 document.addEventListener('mouseup',endD);
 document.addEventListener('touchend',endD);
 
+// Dragzone: div fijo sobre la cabecera
+const dz=document.getElementById('dragzone');
+dz.addEventListener('mousedown',startD);
+dz.addEventListener('touchstart',startD,{passive:false});
+
 function startD(e){
   if(torn||busy) return;
-  if(e.target.closest('.panel')||e.target.closest('#ov')) return;
-  // Only allow drag from header (top 180px of front page)
-  const rect=pf().getBoundingClientRect();
-  const y=gy(e);
-  if(y-rect.top>180) return;
-  drag=true; sy=y;
+  drag=true; sy=gy(e);
   pf().style.transition='none';
   if(e.cancelable) e.preventDefault();
 }
