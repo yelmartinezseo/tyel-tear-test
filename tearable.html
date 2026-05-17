@@ -8,131 +8,81 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#b8b4b0;font-family:'DM Sans',sans-serif;user-select:none}
+#wrap{width:100vw;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
 
-#wrap{width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden;position:relative}
-
-/* ── STAGE ── */
 #stage{flex:1;position:relative;overflow:hidden;min-height:0}
-.page{position:absolute;inset:0;display:flex;flex-direction:column;transform-origin:top center}
+
+/* páginas DOM detrás del canvas */
+.page{position:absolute;inset:0;display:flex;flex-direction:column}
 #pback{z-index:1}
 #pfront{z-index:2}
 
-/* ── HEADER ── */
+/* canvas de física — encima de todo salvo paneles */
+#tc{position:absolute;inset:0;z-index:6;touch-action:none;cursor:grab}
+#tc.tearing{cursor:grabbing}
+
 .ph{padding:22px 26px 36px;flex-shrink:0}
 .ph-f{background:#c9837a}
 .ph-b{background:#8a9db5}
 .ph h1{font-family:'Syne',sans-serif;font-size:clamp(40px,11vw,90px);font-weight:800;color:rgba(255,255,255,.94);line-height:1;letter-spacing:-2px}
 .ph .yr{font-family:'Syne',sans-serif;font-size:13px;color:rgba(255,255,255,.58);margin-top:4px}
 
-/* ── GRID ── */
-.pgrid-wrap{flex:1;background:#c8c4c0;padding:8px 10px 2px;overflow:hidden}
+.pgrid{flex:1;background:#c8c4c0;padding:8px 10px 2px;overflow:hidden}
 .grid{display:grid;grid-template-columns:repeat(7,1fr)}
 .ch{text-align:center;font-family:'Syne',sans-serif;font-size:clamp(13px,3.2vw,24px);font-weight:700;color:#7b7470;padding:4px 0 8px}
 .ch.wk{color:#c9837a}
-
-.dc{text-align:center;padding:3px 1px 4px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;min-height:54px;transition:background .1s;position:relative}
+.dc{text-align:center;padding:3px 1px 4px;border-radius:8px;display:flex;flex-direction:column;align-items:center;min-height:54px;position:relative}
 .dc.emp{pointer-events:none}
-.dc:active{background:rgba(255,255,255,.3)}
-.dn{font-family:'Syne',sans-serif;font-size:clamp(17px,4.2vw,40px);font-weight:700;color:#1a1612;line-height:1.05;position:relative;z-index:1}
+.dn{font-family:'Syne',sans-serif;font-size:clamp(17px,4.2vw,40px);font-weight:700;color:#1a1612;line-height:1.05}
 .dc.wk .dn{color:#c9837a}
-
-/* today: número en círculo rosa */
-.dc.tod .dn{
-  background:#c9837a;color:#fff;border-radius:50%;
-  width:clamp(28px,5.5vw,44px);height:clamp(28px,5.5vw,44px);
-  display:flex;align-items:center;justify-content:center;
-  font-size:clamp(13px,3.2vw,28px)
-}
-
-/* sel: borde, sin tocar el círculo del today */
+.dc.tod .dn{background:#c9837a;color:#fff;border-radius:50%;width:clamp(28px,5.5vw,44px);height:clamp(28px,5.5vw,44px);display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.2vw,28px)}
 .dc.sel{outline:2.5px solid #c9837a;outline-offset:-1px;border-radius:8px}
-
-/* colored bg on cell */
-.dc.colored{border-radius:8px}
-
-/* markers row: solo nota y emoji, NO color */
 .dm{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:10px;margin-top:2px}
 .dot-nota{width:6px;height:6px;border-radius:50%;background:#c9837a;flex-shrink:0}
 .em{font-size:10px;line-height:1}
 
-/* ── BAR ── */
-#bar{
-  background:#f4f0ed;
-  display:flex;align-items:center;justify-content:space-around;
-  padding:10px 8px 16px;
-  border-top:1px solid rgba(0,0,0,.09);
-  flex-shrink:0;z-index:5
-}
-.bb{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:12px;transition:background .1s}
+/* BAR */
+#bar{background:#f4f0ed;display:flex;align-items:center;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(0,0,0,.09);flex-shrink:0;z-index:10}
+.bb{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:12px}
 .bb:active{background:rgba(0,0,0,.07)}
 .bi{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;font-style:normal}
 .bl{font-size:11px;font-weight:500;color:#7b7470}
 
-/* ── OVERLAY ── */
+/* OVERLAY + PANELS */
 #ov{display:none;position:absolute;inset:0;background:rgba(8,6,4,.56);z-index:20}
 #ov.on{display:block}
-
-/* ── PANELS ── */
-.panel{
-  position:absolute;bottom:-110%;left:0;right:0;
-  background:#faf8f6;border-radius:22px 22px 0 0;
-  padding:16px 18px 28px;
-  z-index:30;
-  transition:bottom .34s cubic-bezier(.22,.8,.22,1);
-  max-height:82%;overflow-y:auto
-}
+.panel{position:absolute;bottom:-110%;left:0;right:0;background:#faf8f6;border-radius:22px 22px 0 0;padding:16px 18px 28px;z-index:30;transition:bottom .34s cubic-bezier(.22,.8,.22,1);max-height:82%;overflow-y:auto}
 .panel.open{bottom:0}
 .phan{width:38px;height:4px;background:rgba(0,0,0,.14);border-radius:2px;margin:0 auto 16px}
-
-/* HEADER ROW inside panel */
 .ph-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ptit{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#999}
-.pcl{
-  background:#e8e4e0;border:none;border-radius:50%;
-  width:30px;height:30px;font-size:16px;line-height:30px;text-align:center;
-  cursor:pointer;color:#444;flex-shrink:0;display:flex;align-items:center;justify-content:center
-}
+.pcl{background:#e8e4e0;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;color:#444;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
-/* DAY SELECTOR inside panel */
-.day-sel-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#f0ece8;border-radius:12px}
-.day-sel-lbl{font-size:12px;color:#888;font-weight:500;flex-shrink:0}
-.day-sel-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#1a1612;flex:1}
-.day-sel-btns{display:flex;gap:6px}
-.day-sel-btn{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:500;cursor:pointer;color:#444;white-space:nowrap}
-.day-sel-btn:active{background:#f0ece8}
+.dsr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#f0ece8;border-radius:12px}
+.dsl{font-size:12px;color:#888;font-weight:500;flex-shrink:0}
+.dsv{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#1a1612;flex:1}
+.dsb{display:flex;gap:6px}
+.dsb button{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:500;cursor:pointer;color:#444}
 
-/* NOTA */
 textarea{width:100%;min-height:90px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;padding:10px 12px;font-size:14px;color:#1a1612;background:#fff;resize:none;outline:none;font-family:'DM Sans',sans-serif}
 textarea:focus{border-color:#c9837a}
 .sbtn{width:100%;margin-top:10px;padding:13px;background:#c9837a;color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.sbtn:active{opacity:.85}
-.delbtn{width:100%;margin-top:8px;padding:11px;background:rgba(0,0,0,.06);color:#c9837a;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+.xbtn{width:100%;margin-top:8px;padding:11px;background:rgba(0,0,0,.06);color:#c9837a;border:none;border-radius:10px;font-size:13px;cursor:pointer}
 
-/* COLOR */
 .cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
 .sw{border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .12s,border-color .12s;aspect-ratio:1;max-width:46px;width:100%;margin:0 auto;display:block}
 .sw:active{transform:scale(1.12)}
 .sw.sel{border-color:#1a1612}
-.xbtn{width:100%;padding:11px;background:rgba(0,0,0,.06);color:#666;border:none;border-radius:10px;font-size:13px;cursor:pointer}
 
-/* EMOJI */
 .egrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-.eb{background:rgba(0,0,0,.04);border:none;border-radius:10px;padding:9px 4px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.eb{background:rgba(0,0,0,.04);border:none;border-radius:10px;padding:9px 4px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .eb:active{background:rgba(0,0,0,.12)}
-/* current emoji display */
-.cur-emoji{text-align:center;font-size:28px;margin-bottom:10px;min-height:36px}
+.cur-em{text-align:center;font-size:28px;margin-bottom:10px;min-height:36px}
 
-/* TOAST */
 #toast{position:absolute;bottom:82px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1612;color:#fff;padding:8px 18px;border-radius:40px;font-size:12px;font-weight:500;opacity:0;transition:opacity .2s,transform .2s;z-index:50;pointer-events:none;white-space:nowrap}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* SELINFO */
-#si{position:absolute;top:10px;right:10px;background:rgba(201,131,122,.92);color:#fff;padding:5px 12px;border-radius:30px;font-size:11px;font-weight:700;z-index:15;pointer-events:none;opacity:0;transition:opacity .22s}
+#si{position:absolute;top:10px;right:10px;background:rgba(201,131,122,.92);color:#fff;padding:5px 12px;border-radius:30px;font-size:11px;font-weight:700;z-index:7;pointer-events:none;opacity:0;transition:opacity .22s}
 #si.on{opacity:1}
-
-/* HINT */
-#hint{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);background:rgba(201,131,122,.88);color:#fff;padding:9px 20px;border-radius:30px;font-size:12px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .3s;z-index:12;white-space:nowrap;text-align:center}
-#hint.on{opacity:1}
 </style>
 </head>
 <body>
@@ -140,46 +90,36 @@ textarea:focus{border-color:#c9837a}
   <div id="stage">
     <div class="page" id="pback"></div>
     <div class="page" id="pfront"></div>
-    <!-- zona de drag: cubre solo la cabecera, encima de todo excepto paneles -->
-    <div id="dragzone" style="position:absolute;top:0;left:0;right:0;height:200px;z-index:10;cursor:ns-resize;touch-action:none;"></div>
+    <canvas id="tc"></canvas>
 
     <div id="ov" onclick="closeAll()"></div>
     <div id="si"></div>
-    <div id="hint">Arrastra la cabecera hacia arriba ↑</div>
 
     <!-- PANEL NOTA -->
     <div class="panel" id="pnota">
       <div class="phan"></div>
-      <div class="ph-row">
-        <div class="ptit" id="ntit">Nota</div>
-        <button class="pcl" onclick="closeAll()">✕</button>
-      </div>
-      <div class="day-sel-row">
-        <span class="day-sel-lbl">Día:</span>
-        <span class="day-sel-val" id="nday">—</span>
-        <div class="day-sel-btns">
-          <button class="day-sel-btn" onclick="shiftDay('nota',-1)">‹ Ant</button>
-          <button class="day-sel-btn" onclick="shiftDay('nota',1)">Sig ›</button>
+      <div class="ph-row"><div class="ptit" id="ntit">Nota</div><button class="pcl" onclick="closeAll()">✕</button></div>
+      <div class="dsr">
+        <span class="dsl">Día:</span><span class="dsv" id="nday">—</span>
+        <div class="dsb">
+          <button onclick="shiftDay('nota',-1)">‹</button>
+          <button onclick="shiftDay('nota',1)">›</button>
         </div>
       </div>
       <textarea id="ntxt" placeholder="Escribe tu nota..."></textarea>
       <button class="sbtn" onclick="saveNota()">Guardar nota</button>
-      <button class="delbtn" onclick="deleteNota()">Borrar nota de este día</button>
+      <button class="xbtn" onclick="deleteNota()">Borrar nota de este día</button>
     </div>
 
     <!-- PANEL COLOR -->
     <div class="panel" id="pcolor">
       <div class="phan"></div>
-      <div class="ph-row">
-        <div class="ptit" id="ctit">Color</div>
-        <button class="pcl" onclick="closeAll()">✕</button>
-      </div>
-      <div class="day-sel-row">
-        <span class="day-sel-lbl">Día:</span>
-        <span class="day-sel-val" id="cday">—</span>
-        <div class="day-sel-btns">
-          <button class="day-sel-btn" onclick="shiftDay('color',-1)">‹ Ant</button>
-          <button class="day-sel-btn" onclick="shiftDay('color',1)">Sig ›</button>
+      <div class="ph-row"><div class="ptit" id="ctit">Color</div><button class="pcl" onclick="closeAll()">✕</button></div>
+      <div class="dsr">
+        <span class="dsl">Día:</span><span class="dsv" id="cday">—</span>
+        <div class="dsb">
+          <button onclick="shiftDay('color',-1)">‹</button>
+          <button onclick="shiftDay('color',1)">›</button>
         </div>
       </div>
       <div class="cgrid" id="cgrid"></div>
@@ -189,19 +129,15 @@ textarea:focus{border-color:#c9837a}
     <!-- PANEL EMOJI -->
     <div class="panel" id="pemoji">
       <div class="phan"></div>
-      <div class="ph-row">
-        <div class="ptit" id="etit">Emoji</div>
-        <button class="pcl" onclick="closeAll()">✕</button>
-      </div>
-      <div class="day-sel-row">
-        <span class="day-sel-lbl">Día:</span>
-        <span class="day-sel-val" id="eday">—</span>
-        <div class="day-sel-btns">
-          <button class="day-sel-btn" onclick="shiftDay('emoji',-1)">‹ Ant</button>
-          <button class="day-sel-btn" onclick="shiftDay('emoji',1)">Sig ›</button>
+      <div class="ph-row"><div class="ptit" id="etit">Emoji</div><button class="pcl" onclick="closeAll()">✕</button></div>
+      <div class="dsr">
+        <span class="dsl">Día:</span><span class="dsv" id="eday">—</span>
+        <div class="dsb">
+          <button onclick="shiftDay('emoji',-1)">‹</button>
+          <button onclick="shiftDay('emoji',1)">›</button>
         </div>
       </div>
-      <div class="cur-emoji" id="curemoji"></div>
+      <div class="cur-em" id="curem"></div>
       <div class="egrid" id="egrid"></div>
       <button class="xbtn" style="margin-top:10px" onclick="clearEmoji()">Quitar emoji de este día</button>
     </div>
@@ -209,25 +145,19 @@ textarea:focus{border-color:#c9837a}
     <div id="toast"></div>
   </div>
 
-  <!-- BAR is outside #stage so it's always visible -->
   <div id="bar">
-    <button class="bb" onclick="openP('nota')">
-      <i class="bi" style="background:#c9837a">✎</i><span class="bl">Nota</span>
-    </button>
-    <button class="bb" onclick="openP('color')">
-      <i class="bi" style="background:#7ab4c9">◈</i><span class="bl">Color</span>
-    </button>
-    <button class="bb" onclick="openP('emoji')">
-      <i class="bi" style="background:#9b7ac9">☺</i><span class="bl">Emoji</span>
-    </button>
-    <button class="bb" onclick="goBack()">
-      <i class="bi" style="background:#7ac99b">↺</i><span class="bl">Volver</span>
-    </button>
+    <button class="bb" onclick="openP('nota')"><i class="bi" style="background:#c9837a">✎</i><span class="bl">Nota</span></button>
+    <button class="bb" onclick="openP('color')"><i class="bi" style="background:#7ab4c9">◈</i><span class="bl">Color</span></button>
+    <button class="bb" onclick="openP('emoji')"><i class="bi" style="background:#9b7ac9">☺</i><span class="bl">Emoji</span></button>
+    <button class="bb" onclick="goBack()"><i class="bi" style="background:#7ac99b">↺</i><span class="bl">Volver</span></button>
   </div>
 </div>
 
 <script>
 'use strict';
+/* ═══════════════════════════════════════════════════════
+   DATOS
+═══════════════════════════════════════════════════════ */
 const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DN=['D','L','M','X','J','V','S'];
 const DNS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -235,151 +165,448 @@ const COLS=['#FFD93D','#FF9A3C','#FF7878','#FF4C6A','#C47ED6','#7A6FD8','#5B9BF0
 const EMJS=['⭐','❤️','🎯','✅','⚠️','💡','🎉','📅','🔔','🎂','💬','✏️','🏃','💪','🍎','☕','🌙','✨','🌱','📌','🔥','🎵','📝','🏆'];
 
 const now=new Date();
-let cY=now.getFullYear(),cM=now.getMonth();
-// panel-specific day selection (independent of drag)
+let cY=now.getFullYear(), cM=now.getMonth();
 let pDay={nota:now.getDate(),color:now.getDate(),emoji:now.getDate()};
 let pYear={nota:cY,color:cY,emoji:cY};
 let pMonth={nota:cM,color:cM,emoji:cM};
-
 let hist=[];
 let cal={};
-try{cal=JSON.parse(localStorage.getItem('tyc4')||'{}')}catch(e){}
-const persist=()=>{try{localStorage.setItem('tyc4',JSON.stringify(cal))}catch(e){}};
+try{cal=JSON.parse(localStorage.getItem('tyc5')||'{}')}catch(e){}
+const persist=()=>{try{localStorage.setItem('tyc5',JSON.stringify(cal))}catch(e){}};
 const key=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const daysIn=(y,m)=>new Date(y,m+1,0).getDate();
-const dayName=(y,m,d)=>DNS[new Date(y,m,d).getDay()];
-const fullDate=(y,m,d)=>`${dayName(y,m,d)} ${d} de ${MN[m]} ${y}`;
+const fullDate=(y,m,d)=>`${DNS[new Date(y,m,d).getDay()]} ${d} de ${MN[m]} ${y}`;
 
-// ── BUILD ────────────────────────────────────────────────────────────────────
-function buildCal(y,m,el,isfront){
+/* ═══════════════════════════════════════════════════════
+   DOM CALENDAR
+═══════════════════════════════════════════════════════ */
+function buildCal(y,m,el,isFront){
   const fd=new Date(y,m,1).getDay();
   const nd=daysIn(y,m);
   const isnow=(y===now.getFullYear()&&m===now.getMonth());
-  let h=`<div class="ph ${isfront?'ph-f':'ph-b'}"><h1>${MN[m]}</h1><div class="yr">${y}</div></div>`;
-  h+=`<div class="pgrid-wrap"><div class="grid">`;
+  let h=`<div class="ph ${isFront?'ph-f':'ph-b'}"><h1>${MN[m]}</h1><div class="yr">${y}</div></div>`;
+  h+=`<div class="pgrid"><div class="grid">`;
   DN.forEach((d,i)=>h+=`<div class="ch${(i===0||i===6)?' wk':''}">${d}</div>`);
   for(let i=0;i<fd;i++) h+=`<div class="dc emp"></div>`;
   for(let d=1;d<=nd;d++){
-    const dow=(fd+d-1)%7,wk=dow===0||dow===6;
+    const dow=(fd+d-1)%7, wk=dow===0||dow===6;
     const tod=isnow&&d===now.getDate();
-    const k=key(y,m,d);
-    const e=cal[k]||{};
-    const bg=e.color?`style="background:${e.color}55"`:'';
+    const k=key(y,m,d), e=cal[k]||{};
+    const bg=e.color?` style="background:${e.color}55"`:'';
     let mk='';
     if(e.nota) mk+=`<span class="dot-nota"></span>`;
     if(e.emoji) mk+=`<span class="em">${e.emoji}</span>`;
-    const cls=['dc',wk&&'wk',tod&&'tod',e.color&&'colored'].filter(Boolean).join(' ');
-    h+=`<div class="${cls}" ${bg} data-d="${d}" data-y="${y}" data-m="${m}" onclick="tapDay(${d},${y},${m})">`
-      +`<div class="dn">${d}</div>`
-      +`<div class="dm">${mk}</div>`
-      +`</div>`;
+    const cls=['dc',wk&&'wk',tod&&'tod'].filter(Boolean).join(' ');
+    h+=`<div class="${cls}"${bg} data-d="${d}" data-y="${y}" data-m="${m}"><div class="dn">${d}</div><div class="dm">${mk}</div></div>`;
   }
   h+=`</div></div>`;
   el.innerHTML=h;
 }
 
 function build(){
-  const pm=cM===0?11:cM-1,py=cM===0?cY-1:cY;
+  const pm=cM===0?11:cM-1, py=cM===0?cY-1:cY;
   buildCal(py,pm,document.getElementById('pback'),false);
   buildCal(cY,cM,document.getElementById('pfront'),true);
-  const pf=document.getElementById('pfront');
-  pf.style.cssText='z-index:2;transform:none;transition:none';
-  // Ajustar dragzone al tamaño real del header tras paint
-  requestAnimationFrame(()=>{
-    const hdr=document.querySelector('#pfront .ph');
-    if(hdr){
-      document.getElementById('dragzone').style.height=hdr.offsetHeight+'px';
+  initTear();
+}
+
+/* ═══════════════════════════════════════════════════════
+   FÍSICA DE TEAR — canvas mesh
+═══════════════════════════════════════════════════════ */
+const canvas=document.getElementById('tc');
+const ctx=canvas.getContext('2d');
+
+// Parámetros de la malla
+const COLS_MESH=30;   // columnas de puntos
+const ROWS_MESH=20;   // filas de puntos
+const STIFFNESS=0.4;  // rigidez del enlace
+const TEAR_DIST=60;   // distancia en px para romper enlace
+const GRAVITY=0.4;
+const DAMPING=0.98;
+const MOUSE_INFLUENCE=120; // radio de influencia del cursor
+
+let points=[], links=[];
+let mouseDown=false, mx=0, my=0, pmx=0, pmy=0;
+let tornAway=false;   // hoja completamente arrancada
+let animId=null;
+let captureW=0, captureH=0;
+// Imagen capturada del calendario actual
+let calSnapshot=null;
+
+function resizeCanvas(){
+  const stage=document.getElementById('stage');
+  canvas.width=stage.clientWidth;
+  canvas.height=stage.clientHeight;
+}
+
+function captureCalendar(){
+  // Dibujamos el front page en un offscreen canvas para usarlo como textura
+  return new Promise(resolve=>{
+    const pf=document.getElementById('pfront');
+    const W=canvas.width, H=canvas.height;
+    // Usamos html2canvas si disponible, si no usamos color plano
+    // Como no tenemos html2canvas, usamos los colores del DOM manualmente
+    const offscreen=document.createElement('canvas');
+    offscreen.width=W; offscreen.height=H;
+    const octx=offscreen.getContext('2d');
+
+    // Header rosa
+    const ph=pf.querySelector('.ph');
+    const phH=ph?ph.offsetHeight:180;
+    octx.fillStyle='#c9837a';
+    octx.fillRect(0,0,W,phH);
+
+    // Texto "mes"
+    octx.font=`800 ${Math.min(90,W*0.11)}px 'Syne',sans-serif`;
+    octx.fillStyle='rgba(255,255,255,0.94)';
+    octx.fillText(MN[cM],26,phH*0.72);
+
+    // Año
+    octx.font=`400 13px 'Syne',sans-serif`;
+    octx.fillStyle='rgba(255,255,255,0.58)';
+    octx.fillText(String(cY),28,phH*0.72+22);
+
+    // Grid gris
+    octx.fillStyle='#c8c4c0';
+    octx.fillRect(0,phH,W,H-phH);
+
+    // Líneas de separación de celdas (sutil)
+    const cellW=W/7;
+    const gridTop=phH+40;
+    const cellH=(H-gridTop)/7;
+    const fd=new Date(cY,cM,1).getDay();
+    const nd=daysIn(cY,cM);
+    const isnow=(cY===now.getFullYear()&&cM===now.getMonth());
+
+    octx.font=`700 ${Math.min(38,cellW*0.7)}px 'Syne',sans-serif`;
+    octx.textAlign='center';
+    octx.textBaseline='middle';
+
+    for(let d=1;d<=nd;d++){
+      const idx=fd+d-1;
+      const col=idx%7, row=Math.floor(idx/7);
+      const cx=col*cellW+cellW/2;
+      const cy=gridTop+row*cellH+cellH/2+8;
+      const dow=(fd+d-1)%7, wk=dow===0||dow===6;
+      const tod=isnow&&d===now.getDate();
+      const k=key(cY,cM,d), e=cal[k]||{};
+
+      if(e.color){
+        octx.fillStyle=e.color+'55';
+        octx.fillRect(col*cellW+1,gridTop+row*cellH,cellW-2,cellH);
+      }
+      if(tod){
+        octx.fillStyle='#c9837a';
+        octx.beginPath();
+        const r=Math.min(cellW,cellH)*0.38;
+        octx.arc(cx,cy,r,0,Math.PI*2);
+        octx.fill();
+        octx.fillStyle='#fff';
+      } else {
+        octx.fillStyle=wk?'#c9837a':'#1a1612';
+      }
+      octx.fillText(String(d),cx,cy);
+
+      // emoji pequeño
+      if(e.emoji){
+        octx.font=`10px sans-serif`;
+        octx.fillText(e.emoji,cx,cy+Math.min(cellH*0.38,18));
+        octx.font=`700 ${Math.min(38,cellW*0.7)}px 'Syne',sans-serif`;
+      }
+      // dot nota
+      if(e.nota){
+        octx.fillStyle='#c9837a';
+        octx.beginPath();
+        octx.arc(cx,cy+Math.min(cellH*0.38,16),3,0,Math.PI*2);
+        octx.fill();
+        octx.fillStyle=wk?'#c9837a':'#1a1612';
+      }
     }
+
+    resolve(offscreen);
   });
-  const h=document.getElementById('hint');
-  h.classList.add('on');
-  setTimeout(()=>h.classList.remove('on'),2400);
 }
 
-// ── DRAG / TEAR ──────────────────────────────────────────────────────────────
-let drag=false,sy=0,torn=false,busy=false;
-
-function gy(e){return e.touches?e.touches[0].clientY:e.clientY}
-function pf(){return document.getElementById('pfront')}
-
-
-
-
-document.addEventListener('mousemove',moveD);
-document.addEventListener('touchmove',moveD,{passive:false});
-document.addEventListener('mouseup',endD);
-document.addEventListener('touchend',endD);
-
-// Dragzone: div fijo sobre la cabecera
-const dz=document.getElementById('dragzone');
-dz.addEventListener('mousedown',startD);
-dz.addEventListener('touchstart',startD,{passive:false});
-
-function startD(e){
-  if(torn||busy) return;
-  drag=true; sy=gy(e);
-  pf().style.transition='none';
-  if(e.cancelable) e.preventDefault();
+async function initTear(){
+  resizeCanvas();
+  calSnapshot=await captureCalendar();
+  captureW=canvas.width; captureH=canvas.height;
+  tornAway=false;
+  buildMesh();
+  if(animId) cancelAnimationFrame(animId);
+  loop();
 }
-function moveD(e){
-  if(!drag||torn||busy) return;
-  const delta=Math.max(0,sy-gy(e));
-  const ang=Math.min(delta/(window.innerHeight*0.55),1)*172;
-  pf().style.transform=`perspective(850px) rotateX(${ang}deg)`;
-  if(e.cancelable) e.preventDefault();
-}
-function endD(){
-  if(!drag||torn||busy) return;
-  drag=false;
-  const m=pf().style.transform.match(/rotateX\(([0-9.]+)deg\)/);
-  const ang=m?parseFloat(m[1]):0;
-  if(ang>60){
-    busy=true; torn=true;
-    pf().style.transition='transform .44s cubic-bezier(.4,0,.6,1)';
-    pf().style.transform='perspective(850px) rotateX(180deg) translateY(-100%)';
-    setTimeout(()=>{
-      hist.push({y:cY,m:cM});
-      cM++;if(cM>11){cM=0;cY++;}
-      // reset panel days to 1st of new month
-      ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
-      build(); toast(`${MN[cM]} ${cY}`);
-    },460);
-  } else {
-    pf().style.transition='transform .28s ease-out';
-    pf().style.transform='none';
+
+function buildMesh(){
+  const W=canvas.width, H=canvas.height;
+  const dx=W/(COLS_MESH-1);
+  const dy=H/(ROWS_MESH-1);
+  points=[];
+  links=[];
+
+  for(let r=0;r<ROWS_MESH;r++){
+    for(let c=0;c<COLS_MESH;c++){
+      points.push({
+        x:c*dx, y:r*dy,
+        px:c*dx, py:r*dy,  // posición anterior (Verlet)
+        pinned:r===0,       // fila superior fijada
+        cut:false
+      });
+    }
+  }
+
+  // Links horizontales
+  for(let r=0;r<ROWS_MESH;r++){
+    for(let c=0;c<COLS_MESH-1;c++){
+      const i=r*COLS_MESH+c;
+      links.push({a:i, b:i+1, len:dx, torn:false});
+    }
+  }
+  // Links verticales
+  for(let r=0;r<ROWS_MESH-1;r++){
+    for(let c=0;c<COLS_MESH;c++){
+      const i=r*COLS_MESH+c;
+      links.push({a:i, b:i+COLS_MESH, len:dy, torn:false});
+    }
   }
 }
 
-// ── TAP DAY ──────────────────────────────────────────────────────────────────
+function update(){
+  if(tornAway) return;
+  const W=canvas.width, H=canvas.height;
+
+  // Integración de Verlet
+  for(let i=0;i<points.length;i++){
+    const p=points[i];
+    if(p.pinned) continue;
+    const vx=(p.x-p.px)*DAMPING;
+    const vy=(p.y-p.py)*DAMPING;
+    p.px=p.x; p.py=p.y;
+    p.x+=vx;
+    p.y+=vy+GRAVITY;
+    // bounds
+    if(p.y>H+200) p.y=H+200;
+  }
+
+  // Interacción con ratón/touch
+  if(mouseDown){
+    const dx2=mx-pmx, dy2=my-pmy;
+    for(let i=0;i<points.length;i++){
+      const p=points[i];
+      if(p.pinned) continue;
+      const dx=p.x-mx, dy=p.y-my;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<MOUSE_INFLUENCE){
+        const force=(MOUSE_INFLUENCE-dist)/MOUSE_INFLUENCE;
+        p.x+=dx2*force*1.5;
+        p.y+=dy2*force*1.5;
+      }
+    }
+  }
+  pmx=mx; pmy=my;
+
+  // Satisfacer constraints de links (múltiples iteraciones)
+  for(let iter=0;iter<3;iter++){
+    for(let i=0;i<links.length;i++){
+      const lk=links[i];
+      if(lk.torn) continue;
+      const pa=points[lk.a], pb=points[lk.b];
+      const dx=pb.x-pa.x, dy=pb.y-pa.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist===0) continue;
+
+      // Rasgar si supera umbral
+      if(dist>TEAR_DIST){
+        lk.torn=true;
+        continue;
+      }
+
+      const diff=(dist-lk.len)/dist*STIFFNESS;
+      const ox=dx*diff*0.5, oy=dy*diff*0.5;
+      if(!pa.pinned){pa.x+=ox; pa.y+=oy;}
+      if(!pb.pinned){pb.x-=ox; pb.y-=oy;}
+    }
+  }
+
+  // Detectar si la hoja está completamente arrancada
+  // (todos los puntos de la primera fila no-pinned han caído)
+  let allFallen=true;
+  for(let c=0;c<COLS_MESH;c++){
+    const p=points[c]; // fila 0
+    if(p.y<canvas.height*0.5){allFallen=false;break;}
+  }
+  // O si no quedan links activos en la primera fila
+  let topLinksLeft=0;
+  for(let i=0;i<links.length;i++){
+    if(!links[i].torn){
+      const pa=points[links[i].a];
+      if(pa.y<50) topLinksLeft++;
+    }
+  }
+  if(topLinksLeft===0&&!tornAway){
+    tornAway=true;
+    setTimeout(advanceMonth,400);
+  }
+}
+
+function draw(){
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  if(tornAway) return;
+
+  // Dibujar la textura del calendario deformada
+  // Usamos la malla para dibujar quads con la imagen
+  if(calSnapshot){
+    const sw=captureW/(COLS_MESH-1);
+    const sh=captureH/(ROWS_MESH-1);
+    for(let r=0;r<ROWS_MESH-1;r++){
+      for(let c=0;c<COLS_MESH-1;c++){
+        const i=r*COLS_MESH+c;
+        const p0=points[i], p1=points[i+1];
+        const p2=points[i+COLS_MESH], p3=points[i+COLS_MESH+1];
+
+        // Triángulo superior
+        drawTexturedTri(ctx,calSnapshot,
+          p0.x,p0.y, p1.x,p1.y, p2.x,p2.y,
+          c*sw,r*sh, (c+1)*sw,r*sh, c*sw,(r+1)*sh
+        );
+        // Triángulo inferior
+        drawTexturedTri(ctx,calSnapshot,
+          p1.x,p1.y, p3.x,p3.y, p2.x,p2.y,
+          (c+1)*sw,r*sh, (c+1)*sw,(r+1)*sh, c*sw,(r+1)*sh
+        );
+      }
+    }
+  }
+}
+
+// Dibuja un triángulo texturizado usando transform de canvas
+function drawTexturedTri(ctx,img,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.closePath();
+  ctx.clip();
+
+  // Calcular transformación afín
+  const denom=(u0*(v1-v2)+u1*(v2-v0)+u2*(v0-v1));
+  if(Math.abs(denom)<0.001){ctx.restore();return;}
+
+  const a=((x0*(v1-v2)+x1*(v2-v0)+x2*(v0-v1))/denom);
+  const b=((y0*(v1-v2)+y1*(v2-v0)+y2*(v0-v1))/denom);
+  const c=((x0*(u2-u1)+x1*(u0-u2)+x2*(u1-u0))/denom);
+  const d=((y0*(u2-u1)+y1*(u0-u2)+y2*(u1-u0))/denom);
+  const e=x0-a*u0-c*v0;
+  const f=y0-b*u0-d*v0;
+
+  ctx.transform(a,b,c,d,e,f);
+  ctx.drawImage(img,0,0);
+  ctx.restore();
+}
+
+function loop(){
+  update();
+  draw();
+  animId=requestAnimationFrame(loop);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EVENTOS CANVAS (tear) + CLICKS EN CELDAS
+═══════════════════════════════════════════════════════ */
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return{x:src.clientX-r.left, y:src.clientY-r.top};
+}
+
+canvas.addEventListener('mousedown',e=>{
+  if(tornAway||document.querySelector('.panel.open')) return;
+  const p=getPos(e);
+  mx=p.x; my=p.y; pmx=p.x; pmy=p.y;
+  mouseDown=true;
+  canvas.classList.add('tearing');
+});
+canvas.addEventListener('touchstart',e=>{
+  if(tornAway||document.querySelector('.panel.open')) return;
+  e.preventDefault();
+  const p=getPos(e);
+  mx=p.x; my=p.y; pmx=p.x; pmy=p.y;
+  mouseDown=true;
+  canvas.classList.add('tearing');
+},{passive:false});
+
+document.addEventListener('mousemove',e=>{
+  if(!mouseDown) return;
+  const p=getPos(e);
+  mx=p.x; my=p.y;
+});
+document.addEventListener('touchmove',e=>{
+  if(!mouseDown) return;
+  e.preventDefault();
+  const p=getPos(e);
+  mx=p.x; my=p.y;
+},{passive:false});
+
+document.addEventListener('mouseup',()=>{mouseDown=false;canvas.classList.remove('tearing');});
+document.addEventListener('touchend',()=>{mouseDown=false;canvas.classList.remove('tearing');});
+
+// Click en celdas — el canvas está encima, lo redirigimos
+canvas.addEventListener('click',e=>{
+  if(tornAway) return;
+  // Pasar el click a la celda del DOM que hay debajo
+  canvas.style.pointerEvents='none';
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  canvas.style.pointerEvents='';
+  if(!el) return;
+  const dc=el.closest('.dc');
+  if(dc&&!dc.classList.contains('emp')){
+    const d=+dc.dataset.d, y=+dc.dataset.y, m=+dc.dataset.m;
+    tapDay(d,y,m);
+  }
+});
+canvas.addEventListener('touchend',e=>{
+  // Solo para taps cortos (no drags)
+  if(tornAway) return;
+  // Si apenas se movió = tap
+},{passive:true});
+
+/* ═══════════════════════════════════════════════════════
+   AVANZAR MES
+═══════════════════════════════════════════════════════ */
+function advanceMonth(){
+  hist.push({y:cY,m:cM});
+  cM++;if(cM>11){cM=0;cY++;}
+  ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
+  build();
+  toast(`${MN[cM]} ${cY}`);
+}
+
+function goBack(){
+  if(!hist.length){toast('Ya estás en el primer mes');return}
+  const p=hist.pop();cY=p.y;cM=p.m;
+  ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
+  build();
+  toast('↺ '+MN[cM]+' '+cY);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAP DÍA
+═══════════════════════════════════════════════════════ */
 function tapDay(d,y,m){
   if(document.querySelector('.panel.open')) return;
-  // set all panels to this day
   ['nota','color','emoji'].forEach(t=>{pDay[t]=d;pYear[t]=y;pMonth[t]=m;});
-  highlightCell(d,y,m);
   const si=document.getElementById('si');
   si.textContent=fullDate(y,m,d);
   si.classList.add('on');
   setTimeout(()=>si.classList.remove('on'),2400);
 }
 
-function highlightCell(d,y,m){
-  document.querySelectorAll('.dc.sel').forEach(el=>el.classList.remove('sel'));
-  const c=document.querySelector(`.dc[data-d="${d}"][data-y="${y}"][data-m="${m}"]`);
-  if(c) c.classList.add('sel');
-}
-
-// ── VOLVER ───────────────────────────────────────────────────────────────────
-function goBack(){
-  if(!hist.length){toast('Ya estás en el primer mes');return}
-  const p=hist.pop();cY=p.y;cM=p.m;
-  ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
-  build(); toast('↺ '+MN[cM]+' '+cY);
-}
-
-// ── PANEL OPEN ───────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════
+   PANELES
+═══════════════════════════════════════════════════════ */
 function openP(type){
   closeAll();
-  refreshPanelDay(type);
+  refreshPDay(type);
   document.getElementById('p'+type).classList.add('open');
   document.getElementById('ov').classList.add('on');
   if(type==='nota'){
@@ -387,54 +614,44 @@ function openP(type){
     document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';
     setTimeout(()=>document.getElementById('ntxt').focus(),350);
   }
-  if(type==='emoji') renderCurEmoji();
+  if(type==='emoji') document.getElementById('curem').textContent=(cal[key(pYear.emoji,pMonth.emoji,pDay.emoji)]||{}).emoji||'';
 }
 
-function refreshPanelDay(type){
-  const nd=fullDate(pYear[type],pMonth[type],pDay[type]);
+function refreshPDay(type){
+  const y=pYear[type],m=pMonth[type],d=pDay[type];
+  const fd=fullDate(y,m,d);
   if(type==='nota'){
-    document.getElementById('ntit').textContent='Nota · '+MN[pMonth.nota]+' '+pYear.nota;
-    document.getElementById('nday').textContent=nd;
+    document.getElementById('ntit').textContent='Nota · '+MN[m]+' '+y;
+    document.getElementById('nday').textContent=fd;
   } else if(type==='color'){
-    document.getElementById('ctit').textContent='Color · '+MN[pMonth.color]+' '+pYear.color;
-    document.getElementById('cday').textContent=nd;
-    const k=key(pYear.color,pMonth.color,pDay.color);
-    const cur=(cal[k]&&cal[k].color)||'';
+    document.getElementById('ctit').textContent='Color · '+MN[m]+' '+y;
+    document.getElementById('cday').textContent=fd;
+    const cur=(cal[key(y,m,d)]||{}).color||'';
     document.getElementById('cgrid').innerHTML=COLS.map(c=>
       `<div class="sw${cur===c?' sel':''}" style="background:${c}" onclick="saveColor('${c}')"></div>`
     ).join('');
   } else if(type==='emoji'){
-    document.getElementById('etit').textContent='Emoji · '+MN[pMonth.emoji]+' '+pYear.emoji;
-    document.getElementById('eday').textContent=nd;
+    document.getElementById('etit').textContent='Emoji · '+MN[m]+' '+y;
+    document.getElementById('eday').textContent=fd;
     document.getElementById('egrid').innerHTML=EMJS.map(em=>
       `<button class="eb" onclick="saveEmoji('${em}')">${em}</button>`
     ).join('');
-    renderCurEmoji();
   }
 }
 
-function renderCurEmoji(){
-  const k=key(pYear.emoji,pMonth.emoji,pDay.emoji);
-  const em=(cal[k]&&cal[k].emoji)||'';
-  document.getElementById('curemoji').textContent=em;
-}
-
-// Shift day within panel (navigate days without closing)
 function shiftDay(type,delta){
   let d=pDay[type],m=pMonth[type],y=pYear[type];
   d+=delta;
-  if(d<1){
-    m--;if(m<0){m=11;y--;}
-    d=daysIn(y,m);
-  } else if(d>daysIn(y,m)){
-    m++;if(m>11){m=0;y++;}
-    d=1;
-  }
-  pDay[type]=d; pMonth[type]=m; pYear[type]=y;
-  refreshPanelDay(type);
+  if(d<1){m--;if(m<0){m=11;y--;}d=daysIn(y,m);}
+  else if(d>daysIn(y,m)){m++;if(m>11){m=0;y++;}d=1;}
+  pDay[type]=d;pMonth[type]=m;pYear[type]=y;
+  refreshPDay(type);
   if(type==='nota'){
     const k=key(y,m,d);
     document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';
+  }
+  if(type==='emoji'){
+    document.getElementById('curem').textContent=(cal[key(y,m,d)]||{}).emoji||'';
   }
 }
 
@@ -443,73 +660,65 @@ function closeAll(){
   document.getElementById('ov').classList.remove('on');
 }
 
-// ── ACTIONS ──────────────────────────────────────────────────────────────────
-function saveNota(){
-  const y=pYear.nota,m=pMonth.nota,d=pDay.nota;
-  const k=key(y,m,d);
-  const v=document.getElementById('ntxt').value.trim();
-  if(!cal[k]) cal[k]={};
-  if(v) cal[k].nota=v; else delete cal[k].nota;
-  persist(); closeAll(); refreshCell(y,m,d); toast('Nota guardada ✓');
-}
-function deleteNota(){
-  const y=pYear.nota,m=pMonth.nota,d=pDay.nota;
-  const k=key(y,m,d);
-  if(cal[k]) delete cal[k].nota;
-  persist(); closeAll(); refreshCell(y,m,d); toast('Nota borrada');
-}
-function saveColor(c){
-  const y=pYear.color,m=pMonth.color,d=pDay.color;
-  const k=key(y,m,d);
-  if(!cal[k]) cal[k]={};
-  cal[k].color=c; persist(); closeAll(); refreshCell(y,m,d); toast('Color aplicado ✓');
-}
-function clearColor(){
-  const y=pYear.color,m=pMonth.color,d=pDay.color;
-  const k=key(y,m,d);
-  if(cal[k]) delete cal[k].color;
-  persist(); closeAll(); refreshCell(y,m,d); toast('Color quitado');
-}
-function saveEmoji(em){
-  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji;
-  const k=key(y,m,d);
-  if(!cal[k]) cal[k]={};
-  cal[k].emoji=em; persist(); closeAll(); refreshCell(y,m,d); toast(em+' añadido ✓');
-}
-function clearEmoji(){
-  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji;
-  const k=key(y,m,d);
-  if(cal[k]) delete cal[k].emoji;
-  persist(); closeAll(); refreshCell(y,m,d); toast('Emoji quitado');
-}
-
-// ── REFRESH CELL ─────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════
+   ACCIONES
+═══════════════════════════════════════════════════════ */
 function refreshCell(y,m,d){
   const c=document.querySelector(`.dc[data-d="${d}"][data-y="${y}"][data-m="${m}"]`);
   if(!c) return;
-  const k=key(y,m,d);
-  const e=cal[k]||{};
-  // background color (full cell)
+  const k=key(y,m,d),e=cal[k]||{};
   c.style.background=e.color?e.color+'55':'';
-  // toggle colored class
-  if(e.color) c.classList.add('colored'); else c.classList.remove('colored');
-  // markers: nota dot + emoji only
   let mk='';
   if(e.nota) mk+=`<span class="dot-nota"></span>`;
   if(e.emoji) mk+=`<span class="em">${e.emoji}</span>`;
   const dm=c.querySelector('.dm');
   if(dm) dm.innerHTML=mk;
+  // refrescar snapshot del canvas
+  captureCalendar().then(snap=>{calSnapshot=snap;});
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
+function saveNota(){
+  const y=pYear.nota,m=pMonth.nota,d=pDay.nota;
+  const k=key(y,m,d),v=document.getElementById('ntxt').value.trim();
+  if(!cal[k]) cal[k]={};
+  if(v) cal[k].nota=v; else delete cal[k].nota;
+  persist();closeAll();refreshCell(y,m,d);toast('Nota guardada ✓');
+}
+function deleteNota(){
+  const y=pYear.nota,m=pMonth.nota,d=pDay.nota,k=key(y,m,d);
+  if(cal[k]) delete cal[k].nota;
+  persist();closeAll();refreshCell(y,m,d);toast('Nota borrada');
+}
+function saveColor(c){
+  const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);
+  if(!cal[k]) cal[k]={};
+  cal[k].color=c;persist();closeAll();refreshCell(y,m,d);toast('Color aplicado ✓');
+}
+function clearColor(){
+  const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);
+  if(cal[k]) delete cal[k].color;
+  persist();closeAll();refreshCell(y,m,d);toast('Color quitado');
+}
+function saveEmoji(em){
+  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);
+  if(!cal[k]) cal[k]={};
+  cal[k].emoji=em;persist();closeAll();refreshCell(y,m,d);toast(em+' añadido ✓');
+}
+function clearEmoji(){
+  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);
+  if(cal[k]) delete cal[k].emoji;
+  persist();closeAll();refreshCell(y,m,d);toast('Emoji quitado');
+}
+
 let tt;
 function toast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('on');
-  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1900);
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll()});
+window.addEventListener('resize',()=>{resizeCanvas();captureCalendar().then(s=>{calSnapshot=s;});});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
 build();
 </script>
 </body>
