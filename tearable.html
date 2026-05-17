@@ -7,42 +7,202 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:#b8b4b0;font-family:'DM Sans',sans-serif;user-select:none}
-#wrap{width:100vw;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+html,body{height:100%;overflow:hidden;background:#2a2420;font-family:'DM Sans',sans-serif;user-select:none}
 
-#stage{flex:1;position:relative;overflow:hidden;min-height:0}
+#wrap{
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  background:#2a2420; /* fondo oscuro tipo madera/escritorio */
+}
 
-/* páginas DOM detrás del canvas */
+/* ══════════════════════════════════════════════
+   ZONA 1 — ANILLAS (estática, arriba)
+══════════════════════════════════════════════ */
+#rings-bar{
+  flex-shrink:0;
+  height:52px;
+  background:#3a3430;
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  padding:0 40px;
+  position:relative;
+  z-index:50;
+  box-shadow:0 3px 12px rgba(0,0,0,.5);
+}
+.ring{
+  width:28px;height:28px;
+  border-radius:50%;
+  border:4px solid #888070;
+  background:#4a4440;
+  position:relative;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.6);
+}
+.ring::after{
+  content:'';
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:10px;height:10px;
+  border-radius:50%;
+  background:#666058;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
+}
+/* Cabeceras acumuladas en las anillas */
+#accumulated{
+  position:absolute;
+  top:0;left:0;right:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:0;
+  pointer-events:none;
+  z-index:45;
+  overflow:visible;
+}
+.acc-strip{
+  position:absolute;
+  left:0;right:0;
+  height:36px;
+  border-radius:0 0 4px 4px;
+  display:flex;align-items:center;
+  padding:0 20px;
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:rgba(255,255,255,.7);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+  top:52px; /* empieza debajo de las anillas */
+  transition:transform .3s ease;
+}
+
+/* ══════════════════════════════════════════════
+   ZONA 2 — CALENDARIO DEFORMABLE (centro)
+══════════════════════════════════════════════ */
+#stage{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  min-height:0;
+}
+
+/* páginas DOM */
 .page{position:absolute;inset:0;display:flex;flex-direction:column}
 #pback{z-index:1}
 #pfront{z-index:2}
 
-/* canvas de física — encima de todo salvo paneles */
+/* canvas de física encima */
 #tc{position:absolute;inset:0;z-index:6;touch-action:none;cursor:grab}
-#tc.tearing{cursor:grabbing}
+#tc.tearing{cursor:crosshair}
 
-.ph{padding:22px 26px 36px;flex-shrink:0}
+/* ── CABECERA del mes ── */
+.ph{padding:20px 24px 32px;flex-shrink:0}
 .ph-f{background:#c9837a}
 .ph-b{background:#8a9db5}
-.ph h1{font-family:'Syne',sans-serif;font-size:clamp(40px,11vw,90px);font-weight:800;color:rgba(255,255,255,.94);line-height:1;letter-spacing:-2px}
-.ph .yr{font-family:'Syne',sans-serif;font-size:13px;color:rgba(255,255,255,.58);margin-top:4px}
+.ph h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(38px,10vw,84px);
+  font-weight:800;
+  color:rgba(255,255,255,.94);
+  line-height:1;letter-spacing:-2px
+}
+.ph .yr{font-family:'Syne',sans-serif;font-size:13px;color:rgba(255,255,255,.55);margin-top:4px}
 
-.pgrid{flex:1;background:#c8c4c0;padding:8px 10px 2px;overflow:hidden}
+/* ── LÍNEA DE PERFORACIÓN ── */
+.perf-line{
+  height:18px;
+  flex-shrink:0;
+  background:repeating-linear-gradient(
+    90deg,
+    rgba(0,0,0,.25) 0px, rgba(0,0,0,.25) 6px,
+    transparent 6px, transparent 14px
+  );
+  border-top:1px dashed rgba(255,255,255,.25);
+  border-bottom:1px dashed rgba(255,255,255,.15);
+  position:relative;
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:10px;
+}
+.perf-line::before{
+  content:'';
+  position:absolute;
+  left:-8px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#2a2420;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
+}
+.perf-line::after{
+  content:'';
+  position:absolute;
+  right:-8px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#2a2420;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
+}
+.tear-hint{
+  font-size:9px;
+  color:rgba(255,255,255,.3);
+  font-family:'DM Sans',sans-serif;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+
+/* ── GRID ── */
+.pgrid{
+  flex:1;background:#c8c4c0;
+  padding:6px 10px 2px;overflow:hidden
+}
 .grid{display:grid;grid-template-columns:repeat(7,1fr)}
-.ch{text-align:center;font-family:'Syne',sans-serif;font-size:clamp(13px,3.2vw,24px);font-weight:700;color:#7b7470;padding:4px 0 8px}
+.ch{
+  text-align:center;
+  font-family:'Syne',sans-serif;
+  font-size:clamp(12px,3vw,22px);
+  font-weight:700;color:#7b7470;
+  padding:3px 0 6px
+}
 .ch.wk{color:#c9837a}
-.dc{text-align:center;padding:0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;position:relative;gap:2px}
+.dc{
+  text-align:center;padding:0;border-radius:8px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  min-height:50px;position:relative;gap:2px
+}
 .dc.emp{pointer-events:none}
-.dn{font-family:'Syne',sans-serif;font-size:clamp(17px,4.2vw,40px);font-weight:700;color:#1a1612;line-height:1;display:flex;align-items:center;justify-content:center}
+.dn{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(16px,4vw,38px);
+  font-weight:700;color:#1a1612;line-height:1;
+  display:flex;align-items:center;justify-content:center
+}
 .dc.wk .dn{color:#c9837a}
-.dc.tod .dn{background:#c9837a;color:#fff;border-radius:50%;width:clamp(28px,5.5vw,44px);height:clamp(28px,5.5vw,44px);display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.2vw,28px)}
+.dc.tod .dn{
+  background:#c9837a;color:#fff;border-radius:50%;
+  width:clamp(26px,5vw,42px);height:clamp(26px,5vw,42px);
+  font-size:clamp(12px,3vw,26px)
+}
 .dc.sel{outline:2.5px solid #c9837a;outline-offset:-1px;border-radius:8px}
-.dm{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:10px;margin-top:2px}
-.dot-nota{width:7px;height:7px;border-radius:50%;background:#fff;border:1.5px solid #c9837a;flex-shrink:0;margin-top:1px}
-.em{font-size:10px;line-height:1}
+.dm{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;min-height:8px}
+.dot-nota{
+  width:6px;height:6px;border-radius:50%;
+  background:#fff;border:1.5px solid #c9837a;
+  flex-shrink:0
+}
+.em{font-size:9px;line-height:1}
 
-/* BAR */
-#bar{background:#f4f0ed;display:flex;align-items:center;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(0,0,0,.09);flex-shrink:0;z-index:10}
+/* ══════════════════════════════════════════════
+   ZONA 3 — BAR (estática, abajo)
+══════════════════════════════════════════════ */
+#bar{
+  background:#f4f0ed;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:10px 8px 16px;
+  border-top:1px solid rgba(0,0,0,.09);
+  flex-shrink:0;z-index:10
+}
 .bb{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:4px 10px;border-radius:12px}
 .bb:active{background:rgba(0,0,0,.07)}
 .bi{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;font-style:normal}
@@ -51,91 +211,106 @@ html,body{height:100%;overflow:hidden;background:#b8b4b0;font-family:'DM Sans',s
 /* OVERLAY + PANELS */
 #ov{display:none;position:absolute;inset:0;background:rgba(8,6,4,.56);z-index:20}
 #ov.on{display:block}
-.panel{position:absolute;bottom:-110%;left:0;right:0;background:#faf8f6;border-radius:22px 22px 0 0;padding:16px 18px 28px;z-index:30;transition:bottom .34s cubic-bezier(.22,.8,.22,1);max-height:82%;overflow-y:auto}
+.panel{
+  position:absolute;bottom:-110%;left:0;right:0;
+  background:#faf8f6;border-radius:22px 22px 0 0;
+  padding:16px 18px 28px;z-index:30;
+  transition:bottom .34s cubic-bezier(.22,.8,.22,1);
+  max-height:82%;overflow-y:auto
+}
 .panel.open{bottom:0}
 .phan{width:38px;height:4px;background:rgba(0,0,0,.14);border-radius:2px;margin:0 auto 16px}
 .ph-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ptit{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#999}
 .pcl{background:#e8e4e0;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;color:#444;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-
 .dsr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#f0ece8;border-radius:12px}
 .dsl{font-size:12px;color:#888;font-weight:500;flex-shrink:0}
 .dsv{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#1a1612;flex:1}
 .dsb{display:flex;gap:6px}
 .dsb button{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:500;cursor:pointer;color:#444}
-
 textarea{width:100%;min-height:90px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;padding:10px 12px;font-size:14px;color:#1a1612;background:#fff;resize:none;outline:none;font-family:'DM Sans',sans-serif}
 textarea:focus{border-color:#c9837a}
 .sbtn{width:100%;margin-top:10px;padding:13px;background:#c9837a;color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
 .xbtn{width:100%;margin-top:8px;padding:11px;background:rgba(0,0,0,.06);color:#c9837a;border:none;border-radius:10px;font-size:13px;cursor:pointer}
-
 .cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
 .sw{border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .12s,border-color .12s;aspect-ratio:1;max-width:46px;width:100%;margin:0 auto;display:block}
 .sw:active{transform:scale(1.12)}
 .sw.sel{border-color:#1a1612}
-
 .egrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .eb{background:rgba(0,0,0,.04);border:none;border-radius:10px;padding:9px 4px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .eb:active{background:rgba(0,0,0,.12)}
 .cur-em{text-align:center;font-size:28px;margin-bottom:10px;min-height:36px}
 
-#toast{position:absolute;bottom:82px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1612;color:#fff;padding:8px 18px;border-radius:40px;font-size:12px;font-weight:500;opacity:0;transition:opacity .2s,transform .2s;z-index:50;pointer-events:none;white-space:nowrap}
+#toast{
+  position:fixed;bottom:88px;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:#1a1612;color:#fff;padding:8px 18px;
+  border-radius:40px;font-size:12px;font-weight:500;
+  opacity:0;transition:opacity .2s,transform .2s;
+  z-index:200;pointer-events:none;white-space:nowrap
+}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-#si{position:absolute;top:10px;right:10px;background:rgba(201,131,122,.92);color:#fff;padding:5px 12px;border-radius:30px;font-size:11px;font-weight:700;z-index:7;pointer-events:none;opacity:0;transition:opacity .22s}
+#si{
+  position:absolute;top:8px;right:10px;
+  background:rgba(201,131,122,.92);color:#fff;
+  padding:5px 12px;border-radius:30px;font-size:11px;font-weight:700;
+  z-index:7;pointer-events:none;opacity:0;transition:opacity .22s
+}
 #si.on{opacity:1}
 </style>
 </head>
 <body>
 <div id="wrap">
+
+  <!-- ZONA 1: ANILLAS -->
+  <div id="rings-bar">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+  </div>
+  <!-- Cabeceras acumuladas -->
+  <div id="accumulated"></div>
+
+  <!-- ZONA 2: CALENDARIO DEFORMABLE -->
   <div id="stage">
     <div class="page" id="pback"></div>
     <div class="page" id="pfront"></div>
     <canvas id="tc"></canvas>
-
     <div id="ov" onclick="closeAll()"></div>
     <div id="si"></div>
 
-    <!-- PANEL NOTA -->
+    <!-- PANELES -->
     <div class="panel" id="pnota">
       <div class="phan"></div>
       <div class="ph-row"><div class="ptit" id="ntit">Nota</div><button class="pcl" onclick="closeAll()">✕</button></div>
       <div class="dsr">
         <span class="dsl">Día:</span><span class="dsv" id="nday">—</span>
-        <div class="dsb">
-          <button onclick="shiftDay('nota',-1)">‹</button>
-          <button onclick="shiftDay('nota',1)">›</button>
-        </div>
+        <div class="dsb"><button onclick="shiftDay('nota',-1)">‹</button><button onclick="shiftDay('nota',1)">›</button></div>
       </div>
       <textarea id="ntxt" placeholder="Escribe tu nota..."></textarea>
       <button class="sbtn" onclick="saveNota()">Guardar nota</button>
       <button class="xbtn" onclick="deleteNota()">Borrar nota de este día</button>
     </div>
-
-    <!-- PANEL COLOR -->
     <div class="panel" id="pcolor">
       <div class="phan"></div>
       <div class="ph-row"><div class="ptit" id="ctit">Color</div><button class="pcl" onclick="closeAll()">✕</button></div>
       <div class="dsr">
         <span class="dsl">Día:</span><span class="dsv" id="cday">—</span>
-        <div class="dsb">
-          <button onclick="shiftDay('color',-1)">‹</button>
-          <button onclick="shiftDay('color',1)">›</button>
-        </div>
+        <div class="dsb"><button onclick="shiftDay('color',-1)">‹</button><button onclick="shiftDay('color',1)">›</button></div>
       </div>
       <div class="cgrid" id="cgrid"></div>
       <button class="xbtn" onclick="clearColor()">Quitar color de este día</button>
     </div>
-
-    <!-- PANEL EMOJI -->
     <div class="panel" id="pemoji">
       <div class="phan"></div>
       <div class="ph-row"><div class="ptit" id="etit">Emoji</div><button class="pcl" onclick="closeAll()">✕</button></div>
       <div class="dsr">
         <span class="dsl">Día:</span><span class="dsv" id="eday">—</span>
-        <div class="dsb">
-          <button onclick="shiftDay('emoji',-1)">‹</button>
-          <button onclick="shiftDay('emoji',1)">›</button>
-        </div>
+        <div class="dsb"><button onclick="shiftDay('emoji',-1)">‹</button><button onclick="shiftDay('emoji',1)">›</button></div>
       </div>
       <div class="cur-em" id="curem"></div>
       <div class="egrid" id="egrid"></div>
@@ -145,6 +320,7 @@ textarea:focus{border-color:#c9837a}
     <div id="toast"></div>
   </div>
 
+  <!-- ZONA 3: BAR -->
   <div id="bar">
     <button class="bb" onclick="openP('nota')"><i class="bi" style="background:#c9837a">✎</i><span class="bl">Nota</span></button>
     <button class="bb" onclick="openP('color')"><i class="bi" style="background:#7ab4c9">◈</i><span class="bl">Color</span></button>
@@ -155,14 +331,13 @@ textarea:focus{border-color:#c9837a}
 
 <script>
 'use strict';
-/* ═══════════════════════════════════════════════════════
-   DATOS
-═══════════════════════════════════════════════════════ */
 const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DN=['D','L','M','X','J','V','S'];
 const DNS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const COLS=['#FFD93D','#FF9A3C','#FF7878','#FF4C6A','#C47ED6','#7A6FD8','#5B9BF0','#3AC569','#2BD4C4','#888888'];
 const EMJS=['⭐','❤️','🎯','✅','⚠️','💡','🎉','📅','🔔','🎂','💬','✏️','🏃','💪','🍎','☕','🌙','✨','🌱','📌','🔥','🎵','📝','🏆'];
+// colores para cabeceras acumuladas (alternados)
+const HEADER_COLS=['#c9837a','#8a9db5','#a07a9b','#7a9ba0','#9b9a7a','#7a8fa0'];
 
 const now=new Date();
 let cY=now.getFullYear(), cM=now.getMonth();
@@ -170,21 +345,21 @@ let pDay={nota:now.getDate(),color:now.getDate(),emoji:now.getDate()};
 let pYear={nota:cY,color:cY,emoji:cY};
 let pMonth={nota:cM,color:cM,emoji:cM};
 let hist=[];
+let accumulatedMonths=[]; // cabeceras acumuladas en las anillas
 let cal={};
-try{cal=JSON.parse(localStorage.getItem('tyc5')||'{}')}catch(e){}
-const persist=()=>{try{localStorage.setItem('tyc5',JSON.stringify(cal))}catch(e){}};
+try{cal=JSON.parse(localStorage.getItem('tyc6')||'{}')}catch(e){}
+const persist=()=>{try{localStorage.setItem('tyc6',JSON.stringify(cal))}catch(e){}};
 const key=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const daysIn=(y,m)=>new Date(y,m+1,0).getDate();
 const fullDate=(y,m,d)=>`${DNS[new Date(y,m,d).getDay()]} ${d} de ${MN[m]} ${y}`;
 
-/* ═══════════════════════════════════════════════════════
-   DOM CALENDAR
-═══════════════════════════════════════════════════════ */
+/* ── BUILD DOM ── */
 function buildCal(y,m,el,isFront){
-  const fd=new Date(y,m,1).getDay();
-  const nd=daysIn(y,m);
+  const fd=new Date(y,m,1).getDay(), nd=daysIn(y,m);
   const isnow=(y===now.getFullYear()&&m===now.getMonth());
   let h=`<div class="ph ${isFront?'ph-f':'ph-b'}"><h1>${MN[m]}</h1><div class="yr">${y}</div></div>`;
+  // LÍNEA DE PERFORACIÓN solo en el front
+  if(isFront) h+=`<div class="perf-line"><span class="tear-hint">· · · rasgar aquí · · ·</span></div>`;
   h+=`<div class="pgrid"><div class="grid">`;
   DN.forEach((d,i)=>h+=`<div class="ch${(i===0||i===6)?' wk':''}">${d}</div>`);
   for(let i=0;i<fd;i++) h+=`<div class="dc emp"></div>`;
@@ -210,261 +385,254 @@ function build(){
   initTear();
 }
 
-/* ═══════════════════════════════════════════════════════
-   FÍSICA DE TEAR — canvas mesh
-═══════════════════════════════════════════════════════ */
+/* ── CABECERAS ACUMULADAS ── */
+function addAccumulatedHeader(y,m){
+  accumulatedMonths.push({y,m});
+  renderAccumulated();
+}
+function renderAccumulated(){
+  const container=document.getElementById('accumulated');
+  container.innerHTML='';
+  // Mostrar máximo 4 cabeceras apiladas, la más reciente más visible
+  const show=accumulatedMonths.slice(-4);
+  show.forEach((item,i)=>{
+    const strip=document.createElement('div');
+    strip.className='acc-strip';
+    const col=HEADER_COLS[accumulatedMonths.indexOf(item)%HEADER_COLS.length];
+    strip.style.background=col;
+    strip.style.top=`${52+i*6}px`; // apiladas con offset
+    strip.style.opacity=String(0.4+i*0.15);
+    strip.style.fontSize=`${11+i*0.5}px`;
+    strip.textContent=`${MN[item.m]} ${item.y}`;
+    container.appendChild(strip);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   FÍSICA CANVAS
+══════════════════════════════════════════════ */
 const canvas=document.getElementById('tc');
 const ctx=canvas.getContext('2d');
 
-// Parámetros de la malla — comportamiento de papel
-const COLS_MESH=28;
-const ROWS_MESH=18;
-const STIFFNESS=0.85;   // papel rígido
-const TEAR_DIST=28;     // se rompe pronto (papel, no goma)
-const GRAVITY=0.55;
-const DAMPING=0.985;
-const MOUSE_INFLUENCE=80; // zona de corte concentrada
-
-let points=[], links=[];
-let mouseDown=false, mx=0, my=0, pmx=0, pmy=0;
-let tornAway=false;   // hoja completamente arrancada
+const COLS_M=26, ROWS_M=16;
+const STIFFNESS=0.8, GRAVITY=0.5, DAMPING=0.986;
+let TEAR_DIST=50, MOUSE_R=80;
+let pts=[], lks=[];
+let mDown=false, mx=0,my=0,pmx=0,pmy=0;
+let tornAway=false, busy=false;
+let userTouched=false; // OBLIGATORIO: no avanzar sin interacción real
+let snap=null, snapW=0,snapH=0;
+let perfY=0; // Y de la línea de perforación en canvas coords
 let animId=null;
-let captureW=0, captureH=0;
-// Imagen capturada del calendario actual
-let calSnapshot=null;
 
 function resizeCanvas(){
-  const stage=document.getElementById('stage');
-  canvas.width=stage.clientWidth;
-  canvas.height=stage.clientHeight;
+  const st=document.getElementById('stage');
+  canvas.width=st.clientWidth;
+  canvas.height=st.clientHeight;
 }
 
-function captureCalendar(){
-  // Dibujamos el front page en un offscreen canvas para usarlo como textura
+function captureFront(){
   return new Promise(resolve=>{
-    const pf=document.getElementById('pfront');
     const W=canvas.width, H=canvas.height;
-    // Usamos html2canvas si disponible, si no usamos color plano
-    // Como no tenemos html2canvas, usamos los colores del DOM manualmente
-    const offscreen=document.createElement('canvas');
-    offscreen.width=W; offscreen.height=H;
-    const octx=offscreen.getContext('2d');
-
-    // Header rosa
+    const pf=document.getElementById('pfront');
     const ph=pf.querySelector('.ph');
-    const phH=ph?ph.offsetHeight:180;
-    octx.fillStyle='#c9837a';
-    octx.fillRect(0,0,W,phH);
+    const perf=pf.querySelector('.perf-line');
+    const phH=ph?ph.offsetHeight:160;
+    const perfH=perf?perf.offsetHeight:18;
+    perfY=phH+perfH; // guardar Y de perforación para la física
 
-    // Texto "mes"
-    octx.font=`800 ${Math.min(90,W*0.11)}px 'Syne',sans-serif`;
-    octx.fillStyle='rgba(255,255,255,0.94)';
-    octx.fillText(MN[cM],26,phH*0.72);
+    const off=document.createElement('canvas');
+    off.width=W; off.height=H;
+    const oc=off.getContext('2d');
 
-    // Año
-    octx.font=`400 13px 'Syne',sans-serif`;
-    octx.fillStyle='rgba(255,255,255,0.58)';
-    octx.fillText(String(cY),28,phH*0.72+22);
+    // Cabecera rosa
+    oc.fillStyle='#c9837a';
+    oc.fillRect(0,0,W,phH);
+
+    // Texto mes
+    const fsize=Math.min(84,W*0.1);
+    oc.font=`800 ${fsize}px 'Syne',sans-serif`;
+    oc.fillStyle='rgba(255,255,255,0.94)';
+    oc.fillText(MN[cM],24,phH*0.75);
+    oc.font=`400 13px 'Syne',sans-serif`;
+    oc.fillStyle='rgba(255,255,255,0.55)';
+    oc.fillText(String(cY),26,phH*0.75+20);
+
+    // Línea de perforación
+    oc.fillStyle='rgba(0,0,0,0.2)';
+    oc.fillRect(0,phH,W,perfH);
+    oc.strokeStyle='rgba(255,255,255,0.3)';
+    oc.setLineDash([6,8]);
+    oc.lineWidth=1;
+    oc.beginPath();
+    oc.moveTo(0,phH+perfH/2);
+    oc.lineTo(W,phH+perfH/2);
+    oc.stroke();
+    oc.setLineDash([]);
 
     // Grid gris
-    octx.fillStyle='#c8c4c0';
-    octx.fillRect(0,phH,W,H-phH);
+    oc.fillStyle='#c8c4c0';
+    oc.fillRect(0,phH+perfH,W,H-phH-perfH);
 
-    // Líneas de separación de celdas (sutil)
-    const cellW=W/7;
-    const gridTop=phH+40;
-    const cellH=(H-gridTop)/7;
+    // Números del grid
+    const gTop=phH+perfH+28;
+    const cw=W/7;
+    const ch=(H-gTop)/7;
     const fd=new Date(cY,cM,1).getDay();
     const nd=daysIn(cY,cM);
     const isnow=(cY===now.getFullYear()&&cM===now.getMonth());
-
-    octx.font=`700 ${Math.min(38,cellW*0.7)}px 'Syne',sans-serif`;
-    octx.textAlign='center';
-    octx.textBaseline='middle';
+    oc.textAlign='center'; oc.textBaseline='middle';
 
     for(let d=1;d<=nd;d++){
       const idx=fd+d-1;
       const col=idx%7, row=Math.floor(idx/7);
-      const cx=col*cellW+cellW/2;
-      const cy=gridTop+row*cellH+cellH/2+8;
+      const cx=col*cw+cw/2, cy=gTop+row*ch+ch/2;
       const dow=(fd+d-1)%7, wk=dow===0||dow===6;
       const tod=isnow&&d===now.getDate();
-      const k=key(cY,cM,d), e=cal[k]||{};
-
+      const e=cal[key(cY,cM,d)]||{};
       if(e.color){
-        octx.fillStyle=e.color+'55';
-        octx.fillRect(col*cellW+1,gridTop+row*cellH,cellW-2,cellH);
+        oc.fillStyle=e.color+'55';
+        oc.fillRect(col*cw,gTop+row*ch,cw,ch);
       }
+      const fs=Math.min(36,cw*0.65);
+      oc.font=`700 ${fs}px 'Syne',sans-serif`;
       if(tod){
-        octx.fillStyle='#c9837a';
-        octx.beginPath();
-        const r=Math.min(cellW,cellH)*0.38;
-        octx.arc(cx,cy,r,0,Math.PI*2);
-        octx.fill();
-        octx.fillStyle='#fff';
+        oc.fillStyle='#c9837a';
+        oc.beginPath();
+        oc.arc(cx,cy,Math.min(cw,ch)*0.38,0,Math.PI*2);
+        oc.fill();
+        oc.fillStyle='#fff';
       } else {
-        octx.fillStyle=wk?'#c9837a':'#1a1612';
+        oc.fillStyle=wk?'#c9837a':'#1a1612';
       }
-      octx.fillText(String(d),cx,cy);
-
-      // emoji pequeño
-      if(e.emoji){
-        octx.font=`10px sans-serif`;
-        octx.fillText(e.emoji,cx,cy+Math.min(cellH*0.38,18));
-        octx.font=`700 ${Math.min(38,cellW*0.7)}px 'Syne',sans-serif`;
-      }
-      // dot nota
+      oc.fillText(String(d),cx,cy);
+      if(e.emoji){oc.font=`10px sans-serif`;oc.fillText(e.emoji,cx,cy+ch*0.3);oc.font=`700 ${fs}px 'Syne',sans-serif`;}
       if(e.nota){
-        octx.fillStyle='#c9837a';
-        octx.beginPath();
-        octx.arc(cx,cy+Math.min(cellH*0.38,16),3,0,Math.PI*2);
-        octx.fill();
-        octx.fillStyle=wk?'#c9837a':'#1a1612';
+        oc.fillStyle='#c9837a';
+        oc.beginPath();oc.arc(cx,cy+ch*0.35,3,0,Math.PI*2);oc.fill();
       }
     }
-
-    resolve(offscreen);
+    resolve(off);
   });
+}
+
+function buildMesh(){
+  const W=canvas.width, H=canvas.height;
+  const dx=W/(COLS_M-1), dy=H/(ROWS_M-1);
+  // TEAR_DIST relativo al tamaño de celda — lo suficientemente grande para no romperse solo
+  TEAR_DIST=Math.sqrt(dx*dx+dy*dy)*2.8;
+  MOUSE_R=Math.sqrt(dx*dx+dy*dy)*3.5;
+  pts=[]; lks=[];
+
+  for(let r=0;r<ROWS_M;r++){
+    for(let c=0;c<COLS_M;c++){
+      const x=c*dx, y=r*dy;
+      // Pinear solo si está POR ENCIMA de la línea de perforación
+      const pinned=(y<=perfY);
+      pts.push({x,y,px:x,py:y,pinned});
+    }
+  }
+  for(let r=0;r<ROWS_M;r++){
+    for(let c=0;c<COLS_M-1;c++){
+      lks.push({a:r*COLS_M+c,b:r*COLS_M+c+1,len:dx,torn:false});
+    }
+  }
+  for(let r=0;r<ROWS_M-1;r++){
+    for(let c=0;c<COLS_M;c++){
+      lks.push({a:r*COLS_M+c,b:(r+1)*COLS_M+c,len:dy,torn:false});
+    }
+  }
 }
 
 async function initTear(){
   resizeCanvas();
-  calSnapshot=await captureCalendar();
-  captureW=canvas.width; captureH=canvas.height;
-  tornAway=false;
+  snap=await captureFront();
+  snapW=canvas.width; snapH=canvas.height;
+  tornAway=false; busy=false; userTouched=false;
   buildMesh();
   if(animId) cancelAnimationFrame(animId);
   loop();
 }
 
-function buildMesh(){
-  const W=canvas.width, H=canvas.height;
-  const dx=W/(COLS_MESH-1);
-  const dy=H/(ROWS_MESH-1);
-  points=[];
-  links=[];
-
-  for(let r=0;r<ROWS_MESH;r++){
-    for(let c=0;c<COLS_MESH;c++){
-      points.push({
-        x:c*dx, y:r*dy,
-        px:c*dx, py:r*dy,  // posición anterior (Verlet)
-        pinned:r===0,       // fila superior fijada
-        cut:false
-      });
-    }
-  }
-
-  // Links horizontales
-  for(let r=0;r<ROWS_MESH;r++){
-    for(let c=0;c<COLS_MESH-1;c++){
-      const i=r*COLS_MESH+c;
-      links.push({a:i, b:i+1, len:dx, torn:false});
-    }
-  }
-  // Links verticales
-  for(let r=0;r<ROWS_MESH-1;r++){
-    for(let c=0;c<COLS_MESH;c++){
-      const i=r*COLS_MESH+c;
-      links.push({a:i, b:i+COLS_MESH, len:dy, torn:false});
-    }
-  }
-}
+function d2(a,b){const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy;}
 
 function update(){
   if(tornAway) return;
   const W=canvas.width, H=canvas.height;
 
-  // Integración de Verlet
-  for(let i=0;i<points.length;i++){
-    const p=points[i];
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];
     if(p.pinned) continue;
-    const vx=(p.x-p.px)*DAMPING;
-    const vy=(p.y-p.py)*DAMPING;
+    const vx=(p.x-p.px)*DAMPING, vy=(p.y-p.py)*DAMPING;
     p.px=p.x; p.py=p.y;
-    p.x+=vx;
-    p.y+=vy+GRAVITY;
-    // bounds
-    if(p.y>H+200) p.y=H+200;
+    p.x+=vx; p.y+=vy+GRAVITY;
+    if(p.y>H+300) p.y=H+300;
   }
 
-  // Interacción: el cursor CORTA los links que pasa por encima
-  if(mouseDown){
+  if(mDown && userTouched){
     const vx=mx-pmx, vy=my-pmy;
-    const speed=Math.sqrt(vx*vx+vy*vy);
-    // Cortar links que intersectan la trayectoria del cursor
-    for(let i=0;i<links.length;i++){
-      const lk=links[i];
+    // CORTAR links que el cursor atraviesa
+    for(let i=0;i<lks.length;i++){
+      const lk=lks[i];
       if(lk.torn) continue;
-      const pa=points[lk.a], pb=points[lk.b];
+      const pa=pts[lk.a], pb=pts[lk.b];
+      // Solo cortar links por debajo de la línea de perforación
+      if(pa.pinned && pb.pinned) continue;
       const cx=(pa.x+pb.x)*0.5, cy=(pa.y+pb.y)*0.5;
       const dx=cx-mx, dy=cy-my;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<MOUSE_INFLUENCE){
+      if(Math.sqrt(dx*dx+dy*dy)<MOUSE_R*0.6){
         lk.torn=true;
-        // Dar velocidad a los puntos vecinos en dirección del arrastre
-        const kick=speed*0.4;
-        if(!pa.pinned){pa.x+=vx*kick*0.1; pa.y+=vy*kick*0.1+2;}
-        if(!pb.pinned){pb.x+=vx*kick*0.1; pb.y+=vy*kick*0.1+2;}
+        if(!pa.pinned){pa.px=pa.x-vx*0.1;pa.py=pa.y-vy*0.1;}
+        if(!pb.pinned){pb.px=pb.x-vx*0.1;pb.py=pb.y-vy*0.1;}
       }
     }
-    // También mover puntos cercanos con el cursor (arrastrar trozo)
-    for(let i=0;i<points.length;i++){
-      const p=points[i];
+    // Arrastrar puntos cercanos
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i];
       if(p.pinned) continue;
       const dx=p.x-mx, dy=p.y-my;
       const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<MOUSE_INFLUENCE*0.5){
-        const force=(MOUSE_INFLUENCE*0.5-dist)/(MOUSE_INFLUENCE*0.5);
-        p.x+=vx*force*0.8;
-        p.y+=vy*force*0.8;
+      if(dist<MOUSE_R*0.4){
+        const f=(MOUSE_R*0.4-dist)/(MOUSE_R*0.4);
+        p.x+=vx*f*0.7; p.y+=vy*f*0.7;
       }
     }
   }
   pmx=mx; pmy=my;
 
-  // Satisfacer constraints de links (múltiples iteraciones)
+  // Constraints
   for(let iter=0;iter<3;iter++){
-    for(let i=0;i<links.length;i++){
-      const lk=links[i];
+    for(let i=0;i<lks.length;i++){
+      const lk=lks[i];
       if(lk.torn) continue;
-      const pa=points[lk.a], pb=points[lk.b];
+      const pa=pts[lk.a], pb=pts[lk.b];
       const dx=pb.x-pa.x, dy=pb.y-pa.y;
       const dist=Math.sqrt(dx*dx+dy*dy);
       if(dist===0) continue;
-
-      // Rasgar si supera umbral
-      if(dist>TEAR_DIST){
-        lk.torn=true;
-        continue;
-      }
-
-      const diff=(dist-lk.len)/dist*STIFFNESS;
-      const ox=dx*diff*0.5, oy=dy*diff*0.5;
-      if(!pa.pinned){pa.x+=ox; pa.y+=oy;}
-      if(!pb.pinned){pb.x-=ox; pb.y-=oy;}
+      if(dist>TEAR_DIST){lk.torn=true;continue;}
+      const diff=(dist-lk.len)/dist*STIFFNESS*0.5;
+      const ox=dx*diff, oy=dy*diff;
+      if(!pa.pinned){pa.x+=ox;pa.y+=oy;}
+      if(!pb.pinned){pb.x-=ox;pb.y-=oy;}
     }
   }
 
-  // Detectar hoja arrancada: todos los links verticales de la fila 0→1 rotos
-  if(!tornAway){
-    let topV=0, tornV=0;
-    for(let i=0;i<links.length;i++){
-      const lk=links[i];
-      const pa=points[lk.a], pb=points[lk.b];
-      // links verticales de la primera fila (conectan row0 con row1)
-      if(lk.a<COLS_MESH && lk.b<COLS_MESH*2 && lk.b>=COLS_MESH){
-        topV++;
-        if(lk.torn) tornV++;
+  // Detección de arrancado — SOLO si el usuario ha interactuado
+  if(userTouched && !tornAway){
+    // Contar links verticales justo en la línea de perforación (row que cruza perfY)
+    let perfLinks=0, tornPerf=0;
+    for(let i=0;i<lks.length;i++){
+      const lk=lks[i];
+      const pa=pts[lk.a], pb=pts[lk.b];
+      // link vertical que cruza perfY: uno pinned, otro no
+      if(pa.pinned!==pb.pinned){
+        perfLinks++;
+        if(lk.torn) tornPerf++;
       }
     }
-    if(topV>0 && tornV>=topV*0.85){
-      tornAway=true;
-      // Dar gravedad fuerte a todos los puntos no anclados
-      for(let i=COLS_MESH;i<points.length;i++){
-        points[i].py=points[i].y-3; // impulso hacia abajo
-      }
-      setTimeout(advanceMonth,600);
+    if(perfLinks>0 && tornPerf/perfLinks>=0.9 && !busy){
+      busy=true; tornAway=true;
+      setTimeout(()=>advanceMonth(),500);
     }
   }
 }
@@ -472,133 +640,75 @@ function update(){
 function draw(){
   const W=canvas.width, H=canvas.height;
   ctx.clearRect(0,0,W,H);
-  if(tornAway) return;
+  if(tornAway||!snap) return;
 
-  if(!calSnapshot) return;
-  const sw=captureW/(COLS_MESH-1);
-  const sh=captureH/(ROWS_MESH-1);
-
-  for(let r=0;r<ROWS_MESH-1;r++){
-    for(let col=0;col<COLS_MESH-1;col++){
-      const i=r*COLS_MESH+col;
-      const p0=points[i], p1=points[i+1];
-      const p2=points[i+COLS_MESH], p3=points[i+COLS_MESH+1];
-
-      // Solo dibujar si ningún punto ha caído demasiado lejos
-      // (evita triángulos estirados grotescos)
-      const maxDist=Math.max(
-        dist2(p0,p1), dist2(p1,p3), dist2(p3,p2), dist2(p2,p0)
-      );
-      if(maxDist>sw*sw*9) continue; // saltar quads muy distorsionados
-
-      drawTexturedTri(ctx,calSnapshot,
-        p0.x,p0.y, p1.x,p1.y, p2.x,p2.y,
-        col*sw,r*sh, (col+1)*sw,r*sh, col*sw,(r+1)*sh
-      );
-      drawTexturedTri(ctx,calSnapshot,
-        p1.x,p1.y, p3.x,p3.y, p2.x,p2.y,
-        (col+1)*sw,r*sh, (col+1)*sw,(r+1)*sh, col*sw,(r+1)*sh
-      );
+  const sw=snapW/(COLS_M-1), sh=snapH/(ROWS_M-1);
+  for(let r=0;r<ROWS_M-1;r++){
+    for(let c=0;c<COLS_M-1;c++){
+      const i=r*COLS_M+c;
+      const p0=pts[i],p1=pts[i+1],p2=pts[i+COLS_M],p3=pts[i+COLS_M+1];
+      // Saltar quads muy distorsionados
+      if(Math.max(d2(p0,p1),d2(p1,p3),d2(p3,p2),d2(p2,p0))>sw*sw*8) continue;
+      tri(snap,p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,c*sw,r*sh,(c+1)*sw,r*sh,c*sw,(r+1)*sh);
+      tri(snap,p1.x,p1.y,p3.x,p3.y,p2.x,p2.y,(c+1)*sw,r*sh,(c+1)*sw,(r+1)*sh,c*sw,(r+1)*sh);
     }
   }
 }
 
-function dist2(a,b){const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy;}
-
-// Dibuja un triángulo texturizado usando transform de canvas
-function drawTexturedTri(ctx,img,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
+function tri(img,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
+  const den=(u0*(v1-v2)+u1*(v2-v0)+u2*(v0-v1));
+  if(Math.abs(den)<0.001) return;
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2);
-  ctx.closePath();
-  ctx.clip();
-
-  // Calcular transformación afín
-  const denom=(u0*(v1-v2)+u1*(v2-v0)+u2*(v0-v1));
-  if(Math.abs(denom)<0.001){ctx.restore();return;}
-
-  const a=((x0*(v1-v2)+x1*(v2-v0)+x2*(v0-v1))/denom);
-  const b=((y0*(v1-v2)+y1*(v2-v0)+y2*(v0-v1))/denom);
-  const c=((x0*(u2-u1)+x1*(u0-u2)+x2*(u1-u0))/denom);
-  const d=((y0*(u2-u1)+y1*(u0-u2)+y2*(u1-u0))/denom);
-  const e=x0-a*u0-c*v0;
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.closePath();ctx.clip();
+  const a=((x0*(v1-v2)+x1*(v2-v0)+x2*(v0-v1))/den);
+  const b=((y0*(v1-v2)+y1*(v2-v0)+y2*(v0-v1))/den);
+  const cc=((x0*(u2-u1)+x1*(u0-u2)+x2*(u1-u0))/den);
+  const d=((y0*(u2-u1)+y1*(u0-u2)+y2*(u1-u0))/den);
+  const e=x0-a*u0-cc*v0;
   const f=y0-b*u0-d*v0;
-
-  ctx.transform(a,b,c,d,e,f);
+  ctx.transform(a,b,cc,d,e,f);
   ctx.drawImage(img,0,0);
   ctx.restore();
 }
 
-function loop(){
-  update();
-  draw();
-  animId=requestAnimationFrame(loop);
-}
+function loop(){update();draw();animId=requestAnimationFrame(loop);}
 
-/* ═══════════════════════════════════════════════════════
-   EVENTOS CANVAS (tear) + CLICKS EN CELDAS
-═══════════════════════════════════════════════════════ */
-function getPos(e){
-  const r=canvas.getBoundingClientRect();
-  const src=e.touches?e.touches[0]:e;
-  return{x:src.clientX-r.left, y:src.clientY-r.top};
-}
+/* ── EVENTOS CANVAS ── */
+function gp(e){const r=canvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
 
 canvas.addEventListener('mousedown',e=>{
   if(tornAway||document.querySelector('.panel.open')) return;
-  const p=getPos(e);
-  mx=p.x; my=p.y; pmx=p.x; pmy=p.y;
-  mouseDown=true;
+  const p=gp(e);mx=p.x;my=p.y;pmx=p.x;pmy=p.y;
+  mDown=true;userTouched=true;
   canvas.classList.add('tearing');
 });
 canvas.addEventListener('touchstart',e=>{
   if(tornAway||document.querySelector('.panel.open')) return;
   e.preventDefault();
-  const p=getPos(e);
-  mx=p.x; my=p.y; pmx=p.x; pmy=p.y;
-  mouseDown=true;
+  const p=gp(e);mx=p.x;my=p.y;pmx=p.x;pmy=p.y;
+  mDown=true;userTouched=true;
   canvas.classList.add('tearing');
 },{passive:false});
+document.addEventListener('mousemove',e=>{if(!mDown)return;const p=gp(e);mx=p.x;my=p.y;});
+document.addEventListener('touchmove',e=>{if(!mDown)return;e.preventDefault();const p=gp(e);mx=p.x;my=p.y;},{passive:false});
+document.addEventListener('mouseup',()=>{mDown=false;canvas.classList.remove('tearing');});
+document.addEventListener('touchend',()=>{mDown=false;canvas.classList.remove('tearing');});
 
-document.addEventListener('mousemove',e=>{
-  if(!mouseDown) return;
-  const p=getPos(e);
-  mx=p.x; my=p.y;
-});
-document.addEventListener('touchmove',e=>{
-  if(!mouseDown) return;
-  e.preventDefault();
-  const p=getPos(e);
-  mx=p.x; my=p.y;
-},{passive:false});
-
-document.addEventListener('mouseup',()=>{mouseDown=false;canvas.classList.remove('tearing');});
-document.addEventListener('touchend',()=>{mouseDown=false;canvas.classList.remove('tearing');});
-
-// Click en celdas — el canvas está encima, lo redirigimos
+// Clicks en celdas — pasar a través del canvas
 canvas.addEventListener('click',e=>{
   if(tornAway) return;
-  // Pasar el click a la celda del DOM que hay debajo
   canvas.style.pointerEvents='none';
   const el=document.elementFromPoint(e.clientX,e.clientY);
   canvas.style.pointerEvents='';
-  if(!el) return;
-  const dc=el.closest('.dc');
+  const dc=el&&el.closest&&el.closest('.dc');
   if(dc&&!dc.classList.contains('emp')){
-    const d=+dc.dataset.d, y=+dc.dataset.y, m=+dc.dataset.m;
-    tapDay(d,y,m);
+    tapDay(+dc.dataset.d,+dc.dataset.y,+dc.dataset.m);
   }
 });
-canvas.addEventListener('touchend',e=>{
-  // Solo para taps cortos (no drags)
-  if(tornAway) return;
-  // Si apenas se movió = tap
-},{passive:true});
 
-/* ═══════════════════════════════════════════════════════
-   AVANZAR MES
-═══════════════════════════════════════════════════════ */
+/* ── AVANZAR MES ── */
 function advanceMonth(){
+  addAccumulatedHeader(cY,cM);
   hist.push({y:cY,m:cM});
   cM++;if(cM>11){cM=0;cY++;}
   ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
@@ -607,31 +717,27 @@ function advanceMonth(){
 }
 
 function goBack(){
-  if(!hist.length){toast('Ya estás en el primer mes');return}
+  if(!hist.length){toast('Ya estás en el primer mes');return;}
+  // Quitar última cabecera acumulada
+  if(accumulatedMonths.length) accumulatedMonths.pop();
+  renderAccumulated();
   const p=hist.pop();cY=p.y;cM=p.m;
   ['nota','color','emoji'].forEach(t=>{pDay[t]=1;pYear[t]=cY;pMonth[t]=cM;});
-  build();
-  toast('↺ '+MN[cM]+' '+cY);
+  build();toast('↺ '+MN[cM]+' '+cY);
 }
 
-/* ═══════════════════════════════════════════════════════
-   TAP DÍA
-═══════════════════════════════════════════════════════ */
+/* ── TAP DÍA ── */
 function tapDay(d,y,m){
   if(document.querySelector('.panel.open')) return;
   ['nota','color','emoji'].forEach(t=>{pDay[t]=d;pYear[t]=y;pMonth[t]=m;});
   const si=document.getElementById('si');
-  si.textContent=fullDate(y,m,d);
-  si.classList.add('on');
+  si.textContent=fullDate(y,m,d);si.classList.add('on');
   setTimeout(()=>si.classList.remove('on'),2400);
 }
 
-/* ═══════════════════════════════════════════════════════
-   PANELES
-═══════════════════════════════════════════════════════ */
+/* ── PANELES ── */
 function openP(type){
-  closeAll();
-  refreshPDay(type);
+  closeAll();refreshPDay(type);
   document.getElementById('p'+type).classList.add('open');
   document.getElementById('ov').classList.add('on');
   if(type==='nota'){
@@ -641,53 +747,33 @@ function openP(type){
   }
   if(type==='emoji') document.getElementById('curem').textContent=(cal[key(pYear.emoji,pMonth.emoji,pDay.emoji)]||{}).emoji||'';
 }
-
 function refreshPDay(type){
   const y=pYear[type],m=pMonth[type],d=pDay[type];
   const fd=fullDate(y,m,d);
-  if(type==='nota'){
-    document.getElementById('ntit').textContent='Nota · '+MN[m]+' '+y;
-    document.getElementById('nday').textContent=fd;
-  } else if(type==='color'){
+  if(type==='nota'){document.getElementById('ntit').textContent='Nota · '+MN[m]+' '+y;document.getElementById('nday').textContent=fd;}
+  else if(type==='color'){
     document.getElementById('ctit').textContent='Color · '+MN[m]+' '+y;
     document.getElementById('cday').textContent=fd;
     const cur=(cal[key(y,m,d)]||{}).color||'';
-    document.getElementById('cgrid').innerHTML=COLS.map(c=>
-      `<div class="sw${cur===c?' sel':''}" style="background:${c}" onclick="saveColor('${c}')"></div>`
-    ).join('');
-  } else if(type==='emoji'){
+    document.getElementById('cgrid').innerHTML=COLS.map(c=>`<div class="sw${cur===c?' sel':''}" style="background:${c}" onclick="saveColor('${c}')"></div>`).join('');
+  }else if(type==='emoji'){
     document.getElementById('etit').textContent='Emoji · '+MN[m]+' '+y;
     document.getElementById('eday').textContent=fd;
-    document.getElementById('egrid').innerHTML=EMJS.map(em=>
-      `<button class="eb" onclick="saveEmoji('${em}')">${em}</button>`
-    ).join('');
+    document.getElementById('egrid').innerHTML=EMJS.map(em=>`<button class="eb" onclick="saveEmoji('${em}')">${em}</button>`).join('');
   }
 }
-
 function shiftDay(type,delta){
   let d=pDay[type],m=pMonth[type],y=pYear[type];
   d+=delta;
   if(d<1){m--;if(m<0){m=11;y--;}d=daysIn(y,m);}
   else if(d>daysIn(y,m)){m++;if(m>11){m=0;y++;}d=1;}
-  pDay[type]=d;pMonth[type]=m;pYear[type]=y;
-  refreshPDay(type);
-  if(type==='nota'){
-    const k=key(y,m,d);
-    document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';
-  }
-  if(type==='emoji'){
-    document.getElementById('curem').textContent=(cal[key(y,m,d)]||{}).emoji||'';
-  }
+  pDay[type]=d;pMonth[type]=m;pYear[type]=y;refreshPDay(type);
+  if(type==='nota'){const k=key(y,m,d);document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';}
+  if(type==='emoji'){document.getElementById('curem').textContent=(cal[key(y,m,d)]||{}).emoji||'';}
 }
+function closeAll(){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));document.getElementById('ov').classList.remove('on');}
 
-function closeAll(){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
-  document.getElementById('ov').classList.remove('on');
-}
-
-/* ═══════════════════════════════════════════════════════
-   ACCIONES
-═══════════════════════════════════════════════════════ */
+/* ── ACCIONES ── */
 function refreshCell(y,m,d){
   const c=document.querySelector(`.dc[data-d="${d}"][data-y="${y}"][data-m="${m}"]`);
   if(!c) return;
@@ -696,53 +782,20 @@ function refreshCell(y,m,d){
   let mk='';
   if(e.nota) mk+=`<span class="dot-nota"></span>`;
   if(e.emoji) mk+=`<span class="em">${e.emoji}</span>`;
-  const dm=c.querySelector('.dm');
-  if(dm) dm.innerHTML=mk;
-  // refrescar snapshot del canvas
-  captureCalendar().then(snap=>{calSnapshot=snap;});
+  const dm=c.querySelector('.dm');if(dm) dm.innerHTML=mk;
+  captureFront().then(s=>{snap=s;});
 }
-
-function saveNota(){
-  const y=pYear.nota,m=pMonth.nota,d=pDay.nota;
-  const k=key(y,m,d),v=document.getElementById('ntxt').value.trim();
-  if(!cal[k]) cal[k]={};
-  if(v) cal[k].nota=v; else delete cal[k].nota;
-  persist();closeAll();refreshCell(y,m,d);toast('Nota guardada ✓');
-}
-function deleteNota(){
-  const y=pYear.nota,m=pMonth.nota,d=pDay.nota,k=key(y,m,d);
-  if(cal[k]) delete cal[k].nota;
-  persist();closeAll();refreshCell(y,m,d);toast('Nota borrada');
-}
-function saveColor(c){
-  const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);
-  if(!cal[k]) cal[k]={};
-  cal[k].color=c;persist();closeAll();refreshCell(y,m,d);toast('Color aplicado ✓');
-}
-function clearColor(){
-  const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);
-  if(cal[k]) delete cal[k].color;
-  persist();closeAll();refreshCell(y,m,d);toast('Color quitado');
-}
-function saveEmoji(em){
-  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);
-  if(!cal[k]) cal[k]={};
-  cal[k].emoji=em;persist();closeAll();refreshCell(y,m,d);toast(em+' añadido ✓');
-}
-function clearEmoji(){
-  const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);
-  if(cal[k]) delete cal[k].emoji;
-  persist();closeAll();refreshCell(y,m,d);toast('Emoji quitado');
-}
+function saveNota(){const y=pYear.nota,m=pMonth.nota,d=pDay.nota,k=key(y,m,d),v=document.getElementById('ntxt').value.trim();if(!cal[k])cal[k]={};if(v)cal[k].nota=v;else delete cal[k].nota;persist();closeAll();refreshCell(y,m,d);toast('Nota guardada ✓');}
+function deleteNota(){const y=pYear.nota,m=pMonth.nota,d=pDay.nota,k=key(y,m,d);if(cal[k])delete cal[k].nota;persist();closeAll();refreshCell(y,m,d);toast('Nota borrada');}
+function saveColor(col){const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);if(!cal[k])cal[k]={};cal[k].color=col;persist();closeAll();refreshCell(y,m,d);toast('Color aplicado ✓');}
+function clearColor(){const y=pYear.color,m=pMonth.color,d=pDay.color,k=key(y,m,d);if(cal[k])delete cal[k].color;persist();closeAll();refreshCell(y,m,d);toast('Color quitado');}
+function saveEmoji(em){const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);if(!cal[k])cal[k]={};cal[k].emoji=em;persist();closeAll();refreshCell(y,m,d);toast(em+' añadido ✓');}
+function clearEmoji(){const y=pYear.emoji,m=pMonth.emoji,d=pDay.emoji,k=key(y,m,d);if(cal[k])delete cal[k].emoji;persist();closeAll();refreshCell(y,m,d);toast('Emoji quitado');}
 
 let tt;
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');
-  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900);
-}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900);}
 
-window.addEventListener('resize',()=>{resizeCanvas();captureCalendar().then(s=>{calSnapshot=s;});});
+window.addEventListener('resize',()=>{resizeCanvas();captureFront().then(s=>{snap=s;});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
 build();
 </script>
