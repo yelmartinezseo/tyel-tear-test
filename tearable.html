@@ -31,14 +31,14 @@ html,body{height:100%;overflow:hidden;background:#b8b4b0;font-family:'DM Sans',s
 .grid{display:grid;grid-template-columns:repeat(7,1fr)}
 .ch{text-align:center;font-family:'Syne',sans-serif;font-size:clamp(13px,3.2vw,24px);font-weight:700;color:#7b7470;padding:4px 0 8px}
 .ch.wk{color:#c9837a}
-.dc{text-align:center;padding:3px 1px 4px;border-radius:8px;display:flex;flex-direction:column;align-items:center;min-height:54px;position:relative}
+.dc{text-align:center;padding:0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;position:relative;gap:2px}
 .dc.emp{pointer-events:none}
-.dn{font-family:'Syne',sans-serif;font-size:clamp(17px,4.2vw,40px);font-weight:700;color:#1a1612;line-height:1.05}
+.dn{font-family:'Syne',sans-serif;font-size:clamp(17px,4.2vw,40px);font-weight:700;color:#1a1612;line-height:1;display:flex;align-items:center;justify-content:center}
 .dc.wk .dn{color:#c9837a}
 .dc.tod .dn{background:#c9837a;color:#fff;border-radius:50%;width:clamp(28px,5.5vw,44px);height:clamp(28px,5.5vw,44px);display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.2vw,28px)}
 .dc.sel{outline:2.5px solid #c9837a;outline-offset:-1px;border-radius:8px}
 .dm{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:10px;margin-top:2px}
-.dot-nota{width:6px;height:6px;border-radius:50%;background:#c9837a;flex-shrink:0}
+.dot-nota{width:7px;height:7px;border-radius:50%;background:#fff;border:1.5px solid #c9837a;flex-shrink:0;margin-top:1px}
 .em{font-size:10px;line-height:1}
 
 /* BAR */
@@ -216,14 +216,14 @@ function build(){
 const canvas=document.getElementById('tc');
 const ctx=canvas.getContext('2d');
 
-// Parámetros de la malla
-const COLS_MESH=30;   // columnas de puntos
-const ROWS_MESH=20;   // filas de puntos
-const STIFFNESS=0.4;  // rigidez del enlace
-const TEAR_DIST=60;   // distancia en px para romper enlace
-const GRAVITY=0.4;
-const DAMPING=0.98;
-const MOUSE_INFLUENCE=120; // radio de influencia del cursor
+// Parámetros de la malla — comportamiento de papel
+const COLS_MESH=28;
+const ROWS_MESH=18;
+const STIFFNESS=0.85;   // papel rígido
+const TEAR_DIST=28;     // se rompe pronto (papel, no goma)
+const GRAVITY=0.55;
+const DAMPING=0.985;
+const MOUSE_INFLUENCE=80; // zona de corte concentrada
 
 let points=[], links=[];
 let mouseDown=false, mx=0, my=0, pmx=0, pmy=0;
@@ -388,18 +388,36 @@ function update(){
     if(p.y>H+200) p.y=H+200;
   }
 
-  // Interacción con ratón/touch
+  // Interacción: el cursor CORTA los links que pasa por encima
   if(mouseDown){
-    const dx2=mx-pmx, dy2=my-pmy;
+    const vx=mx-pmx, vy=my-pmy;
+    const speed=Math.sqrt(vx*vx+vy*vy);
+    // Cortar links que intersectan la trayectoria del cursor
+    for(let i=0;i<links.length;i++){
+      const lk=links[i];
+      if(lk.torn) continue;
+      const pa=points[lk.a], pb=points[lk.b];
+      const cx=(pa.x+pb.x)*0.5, cy=(pa.y+pb.y)*0.5;
+      const dx=cx-mx, dy=cy-my;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<MOUSE_INFLUENCE){
+        lk.torn=true;
+        // Dar velocidad a los puntos vecinos en dirección del arrastre
+        const kick=speed*0.4;
+        if(!pa.pinned){pa.x+=vx*kick*0.1; pa.y+=vy*kick*0.1+2;}
+        if(!pb.pinned){pb.x+=vx*kick*0.1; pb.y+=vy*kick*0.1+2;}
+      }
+    }
+    // También mover puntos cercanos con el cursor (arrastrar trozo)
     for(let i=0;i<points.length;i++){
       const p=points[i];
       if(p.pinned) continue;
       const dx=p.x-mx, dy=p.y-my;
       const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<MOUSE_INFLUENCE){
-        const force=(MOUSE_INFLUENCE-dist)/MOUSE_INFLUENCE;
-        p.x+=dx2*force*1.5;
-        p.y+=dy2*force*1.5;
+      if(dist<MOUSE_INFLUENCE*0.5){
+        const force=(MOUSE_INFLUENCE*0.5-dist)/(MOUSE_INFLUENCE*0.5);
+        p.x+=vx*force*0.8;
+        p.y+=vy*force*0.8;
       }
     }
   }
@@ -428,24 +446,26 @@ function update(){
     }
   }
 
-  // Detectar si la hoja está completamente arrancada
-  // (todos los puntos de la primera fila no-pinned han caído)
-  let allFallen=true;
-  for(let c=0;c<COLS_MESH;c++){
-    const p=points[c]; // fila 0
-    if(p.y<canvas.height*0.5){allFallen=false;break;}
-  }
-  // O si no quedan links activos en la primera fila
-  let topLinksLeft=0;
-  for(let i=0;i<links.length;i++){
-    if(!links[i].torn){
-      const pa=points[links[i].a];
-      if(pa.y<50) topLinksLeft++;
+  // Detectar hoja arrancada: todos los links verticales de la fila 0→1 rotos
+  if(!tornAway){
+    let topV=0, tornV=0;
+    for(let i=0;i<links.length;i++){
+      const lk=links[i];
+      const pa=points[lk.a], pb=points[lk.b];
+      // links verticales de la primera fila (conectan row0 con row1)
+      if(lk.a<COLS_MESH && lk.b<COLS_MESH*2 && lk.b>=COLS_MESH){
+        topV++;
+        if(lk.torn) tornV++;
+      }
     }
-  }
-  if(topLinksLeft===0&&!tornAway){
-    tornAway=true;
-    setTimeout(advanceMonth,400);
+    if(topV>0 && tornV>=topV*0.85){
+      tornAway=true;
+      // Dar gravedad fuerte a todos los puntos no anclados
+      for(let i=COLS_MESH;i<points.length;i++){
+        points[i].py=points[i].y-3; // impulso hacia abajo
+      }
+      setTimeout(advanceMonth,600);
+    }
   }
 }
 
@@ -454,31 +474,36 @@ function draw(){
   ctx.clearRect(0,0,W,H);
   if(tornAway) return;
 
-  // Dibujar la textura del calendario deformada
-  // Usamos la malla para dibujar quads con la imagen
-  if(calSnapshot){
-    const sw=captureW/(COLS_MESH-1);
-    const sh=captureH/(ROWS_MESH-1);
-    for(let r=0;r<ROWS_MESH-1;r++){
-      for(let c=0;c<COLS_MESH-1;c++){
-        const i=r*COLS_MESH+c;
-        const p0=points[i], p1=points[i+1];
-        const p2=points[i+COLS_MESH], p3=points[i+COLS_MESH+1];
+  if(!calSnapshot) return;
+  const sw=captureW/(COLS_MESH-1);
+  const sh=captureH/(ROWS_MESH-1);
 
-        // Triángulo superior
-        drawTexturedTri(ctx,calSnapshot,
-          p0.x,p0.y, p1.x,p1.y, p2.x,p2.y,
-          c*sw,r*sh, (c+1)*sw,r*sh, c*sw,(r+1)*sh
-        );
-        // Triángulo inferior
-        drawTexturedTri(ctx,calSnapshot,
-          p1.x,p1.y, p3.x,p3.y, p2.x,p2.y,
-          (c+1)*sw,r*sh, (c+1)*sw,(r+1)*sh, c*sw,(r+1)*sh
-        );
-      }
+  for(let r=0;r<ROWS_MESH-1;r++){
+    for(let col=0;col<COLS_MESH-1;col++){
+      const i=r*COLS_MESH+col;
+      const p0=points[i], p1=points[i+1];
+      const p2=points[i+COLS_MESH], p3=points[i+COLS_MESH+1];
+
+      // Solo dibujar si ningún punto ha caído demasiado lejos
+      // (evita triángulos estirados grotescos)
+      const maxDist=Math.max(
+        dist2(p0,p1), dist2(p1,p3), dist2(p3,p2), dist2(p2,p0)
+      );
+      if(maxDist>sw*sw*9) continue; // saltar quads muy distorsionados
+
+      drawTexturedTri(ctx,calSnapshot,
+        p0.x,p0.y, p1.x,p1.y, p2.x,p2.y,
+        col*sw,r*sh, (col+1)*sw,r*sh, col*sw,(r+1)*sh
+      );
+      drawTexturedTri(ctx,calSnapshot,
+        p1.x,p1.y, p3.x,p3.y, p2.x,p2.y,
+        (col+1)*sw,r*sh, (col+1)*sw,(r+1)*sh, col*sw,(r+1)*sh
+      );
     }
   }
 }
+
+function dist2(a,b){const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy;}
 
 // Dibuja un triángulo texturizado usando transform de canvas
 function drawTexturedTri(ctx,img,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
