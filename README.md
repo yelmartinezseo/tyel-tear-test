@@ -1,0 +1,1 @@
+T-Yel Calendar started as a creative experiment after discovering the Tearable UI demo by @pushmatrix (Shopify). Inspired by the physics, I rebuilt the cloth simulation from scratch and applied it to a functional calendar with notes, colors and emojis. All calendar logic, UI, and physics engine are original work.
