@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>T-Yel Calendario</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#1a1714;font-family:'DM Sans',sans-serif;user-select:none}
+
+#wrap{
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── CABECERA FIJA: ANILLAS ── */
+#header{
+  flex-shrink:0;
+  position:relative;
+  z-index:100;
+  background:#252220;
+  box-shadow:0 2px 12px rgba(0,0,0,.6);
+}
+
+/* barra de anillas */
+#rings-bar{
+  height:48px;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:0 28px;
+}
+.ring{
+  width:26px;height:26px;border-radius:50%;
+  border:4px solid #6a6560;
+  background:radial-gradient(circle at 35% 35%,#5a5550,#2e2a28);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.5);
+  position:relative;flex-shrink:0;
+}
+.ring::after{
+  content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:9px;height:9px;border-radius:50%;
+  background:#4a4844;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.7);
+}
+
+/* línea de corte discontinua */
+#cut-line{
+  height:20px;
+  background:#1e1b18;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  overflow:visible;
+}
+#cut-line::before{
+  content:'';
+  position:absolute;
+  left:-8px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;border-radius:50%;
+  background:#1a1714;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5);
+}
+#cut-line::after{
+  content:'';
+  position:absolute;
+  right:-8px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;border-radius:50%;
+  background:#1a1714;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5);
+}
+.cut-dashes{
+  width:calc(100% - 16px);
+  border-top:2px dashed rgba(255,255,255,.18);
+  position:relative;
+}
+.cut-label{
+  position:absolute;
+  right:10px;top:-9px;
+  font-size:8px;letter-spacing:1.5px;
+  color:rgba(255,255,255,.25);
+  text-transform:uppercase;
+  background:#1e1b18;
+  padding:0 6px;
+}
+
+/* cabeceras acumuladas (meses arrancados) */
+#acc-stack{
+  position:absolute;
+  top:0;left:0;right:0;
+  pointer-events:none;
+  z-index:90;
+}
+.acc-strip{
+  position:absolute;left:0;right:0;
+  height:48px;
+  display:flex;align-items:center;
+  padding:0 20px;
+  font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;
+  color:rgba(255,255,255,.8);
+}
+
+/* ── CENTRO: TEARABLE IFRAME ── */
+#main{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  min-height:0;
+}
+#tearable-frame{
+  width:100%;height:100%;
+  border:none;display:block;
+  /* el tearable ocupa todo el espacio central */
+}
+
+/* ── FOOTER FIJO: BOTONES ── */
+#footer{
+  flex-shrink:0;
+  background:#f4f0ed;
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  padding:10px 8px 16px;
+  border-top:1px solid rgba(0,0,0,.09);
+  z-index:100;
+}
+.bb{
+  display:flex;flex-direction:column;
+  align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;
+  padding:4px 12px;border-radius:12px;
+  transition:background .1s;
+}
+.bb:active{background:rgba(0,0,0,.07)}
+.bi{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;font-style:normal;
+}
+.bl{font-size:11px;font-weight:500;color:#7b7470;}
+
+/* ── OVERLAY + PANELS ── */
+#ov{
+  display:none;position:fixed;inset:0;
+  background:rgba(8,6,4,.56);z-index:200;
+}
+#ov.on{display:block}
+
+.panel{
+  position:fixed;
+  bottom:-110%;left:0;right:0;
+  background:#faf8f6;
+  border-radius:22px 22px 0 0;
+  padding:16px 18px 28px;
+  z-index:210;
+  transition:bottom .34s cubic-bezier(.22,.8,.22,1);
+  max-height:80vh;overflow-y:auto;
+}
+.panel.open{bottom:0}
+.phan{width:38px;height:4px;background:rgba(0,0,0,.14);border-radius:2px;margin:0 auto 16px}
+.ph-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ptit{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#999}
+.pcl{background:#e8e4e0;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;color:#444;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.dsr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#f0ece8;border-radius:12px}
+.dsl{font-size:12px;color:#888;font-weight:500;flex-shrink:0}
+.dsv{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#1a1612;flex:1}
+.dsb{display:flex;gap:6px}
+.dsb button{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:500;cursor:pointer;color:#444}
+
+textarea{width:100%;min-height:90px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;padding:10px 12px;font-size:14px;color:#1a1612;background:#fff;resize:none;outline:none;font-family:'DM Sans',sans-serif}
+textarea:focus{border-color:#c9837a}
+.sbtn{width:100%;margin-top:10px;padding:13px;background:#c9837a;color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.xbtn{width:100%;margin-top:8px;padding:11px;background:rgba(0,0,0,.06);color:#c9837a;border:none;border-radius:10px;font-size:13px;cursor:pointer}
+
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.sw{border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .12s,border-color .12s;aspect-ratio:1;max-width:46px;width:100%;margin:0 auto;display:block}
+.sw:active{transform:scale(1.12)}
+.sw.sel{border-color:#1a1612}
+
+.egrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.eb{background:rgba(0,0,0,.04);border:none;border-radius:10px;padding:9px 4px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.eb:active{background:rgba(0,0,0,.12)}
+.cur-em{text-align:center;font-size:28px;margin-bottom:10px;min-height:36px}
+
+#toast{
+  position:fixed;bottom:88px;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:#1a1612;color:#fff;
+  padding:8px 18px;border-radius:40px;
+  font-size:12px;font-weight:500;
+  opacity:0;transition:opacity .2s,transform .2s;
+  z-index:300;pointer-events:none;white-space:nowrap;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="wrap">
+
+  <!-- CABECERA FIJA: ANILLAS -->
+  <div id="header">
+    <div id="acc-stack"></div>
+    <div id="rings-bar">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+    </div>
+    <div id="cut-line">
+      <div class="cut-dashes">
+        <span class="cut-label">rasgar aquí</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEARABLE ORIGINAL EN IFRAME -->
+  <div id="main">
+    <iframe
+      id="tearable-frame"
+      src="https://yelmartinezseo.github.io/tyel-tear-test/tearable.html"
+      allow="autoplay"
+      allowfullscreen
+    ></iframe>
+  </div>
+
+  <!-- FOOTER FIJO: BOTONES -->
+  <div id="footer">
+    <button class="bb" onclick="openP('nota')">
+      <i class="bi" style="background:#c9837a">✎</i>
+      <span class="bl">Nota</span>
+    </button>
+    <button class="bb" onclick="openP('color')">
+      <i class="bi" style="background:#7ab4c9">◈</i>
+      <span class="bl">Color</span>
+    </button>
+    <button class="bb" onclick="openP('emoji')">
+      <i class="bi" style="background:#9b7ac9">☺</i>
+      <span class="bl">Emoji</span>
+    </button>
+    <button class="bb" onclick="goBack()">
+      <i class="bi" style="background:#7ac99b">↺</i>
+      <span class="bl">Volver</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- OVERLAY -->
+<div id="ov" onclick="closeAll()"></div>
+
+<!-- PANEL NOTA -->
+<div class="panel" id="pnota">
+  <div class="phan"></div>
+  <div class="ph-row">
+    <div class="ptit" id="ntit">Nota</div>
+    <button class="pcl" onclick="closeAll()">✕</button>
+  </div>
+  <div class="dsr">
+    <span class="dsl">Día:</span>
+    <span class="dsv" id="nday">—</span>
+    <div class="dsb">
+      <button onclick="shiftDay(0,-1)">‹</button>
+      <button onclick="shiftDay(0,1)">›</button>
+    </div>
+  </div>
+  <textarea id="ntxt" placeholder="Escribe tu nota..."></textarea>
+  <button class="sbtn" onclick="saveNota()">Guardar nota</button>
+  <button class="xbtn" onclick="deleteNota()">Borrar nota de este día</button>
+</div>
+
+<!-- PANEL COLOR -->
+<div class="panel" id="pcolor">
+  <div class="phan"></div>
+  <div class="ph-row">
+    <div class="ptit" id="ctit">Color</div>
+    <button class="pcl" onclick="closeAll()">✕</button>
+  </div>
+  <div class="dsr">
+    <span class="dsl">Día:</span>
+    <span class="dsv" id="cday">—</span>
+    <div class="dsb">
+      <button onclick="shiftDay(1,-1)">‹</button>
+      <button onclick="shiftDay(1,1)">›</button>
+    </div>
+  </div>
+  <div class="cgrid" id="cgrid"></div>
+  <button class="xbtn" onclick="clearColor()">Quitar color de este día</button>
+</div>
+
+<!-- PANEL EMOJI -->
+<div class="panel" id="pemoji">
+  <div class="phan"></div>
+  <div class="ph-row">
+    <div class="ptit" id="etit">Emoji</div>
+    <button class="pcl" onclick="closeAll()">✕</button>
+  </div>
+  <div class="dsr">
+    <span class="dsl">Día:</span>
+    <span class="dsv" id="eday">—</span>
+    <div class="dsb">
+      <button onclick="shiftDay(2,-1)">‹</button>
+      <button onclick="shiftDay(2,1)">›</button>
+    </div>
+  </div>
+  <div class="cur-em" id="curem"></div>
+  <div class="egrid" id="egrid"></div>
+  <button class="xbtn" style="margin-top:10px" onclick="clearEmoji()">Quitar emoji de este día</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DNS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const SW=['#FFD93D','#FF9A3C','#FF7878','#FF4C6A','#C47ED6','#7A6FD8','#5B9BF0','#3AC569','#2BD4C4','#888888'];
+const EM=['⭐','❤️','🎯','✅','⚠️','💡','🎉','📅','🔔','🎂','💬','✏️','🏃','💪','🍎','☕','🌙','✨','🌱','📌','🔥','🎵','📝','🏆'];
+const MP=['#c9837a','#7a9db5','#8fa07a','#b59a7a','#c9837a','#7ab5a0','#9b8fb5','#b5a07a','#7a9db5','#b57a8f','#8a9b7a','#7a8fb5'];
+
+const now = new Date();
+let cY=now.getFullYear(), cM=now.getMonth();
+let pD=[now.getDate(),now.getDate(),now.getDate()];
+let pY=[cY,cY,cY], pMo=[cM,cM,cM];
+let hist=[], accM=[], cal={};
+try{cal=JSON.parse(localStorage.getItem('tyc_final')||'{}');}catch(e){}
+const persist=()=>{try{localStorage.setItem('tyc_final',JSON.stringify(cal));}catch(e){}};
+const K=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const dIn=(y,m)=>new Date(y,m+1,0).getDate();
+const fD=(y,m,d)=>`${DNS[new Date(y,m,d).getDay()]} ${d} de ${MN[m]} ${y}`;
+
+/* ── ACUMULADAS ── */
+function pushAcc(y,m){accM.push({y,m,col:MP[m]});renderAcc();}
+function popAcc(){if(accM.length)accM.pop();renderAcc();}
+function renderAcc(){
+  const el=document.getElementById('acc-stack');
+  el.innerHTML='';
+  accM.slice(-4).forEach((it,i,arr)=>{
+    const d=document.createElement('div');
+    d.className='acc-strip';
+    const offset=(arr.length-1-i)*4;
+    d.style.cssText=`background:${it.col};transform:translateY(${offset}px);opacity:${0.4+i*0.15};z-index:${86+i}`;
+    d.textContent=`${MN[it.m]} ${it.y}`;
+    el.appendChild(d);
+  });
+}
+
+/* ── VOLVER ── */
+function goBack(){
+  if(!hist.length){toast('Ya estás en el primer mes');return;}
+  popAcc();
+  const p=hist.pop(); cY=p.y; cM=p.m;
+  [0,1,2].forEach(i=>{pD[i]=1;pY[i]=cY;pMo[i]=cM;});
+  toast('↺ '+MN[cM]+' '+cY);
+}
+
+/* ── PANELES ── */
+function openP(type){
+  const t={nota:0,color:1,emoji:2}[type]??type;
+  closeAll(); refreshPD(t);
+  document.getElementById(['pnota','pcolor','pemoji'][t]).classList.add('open');
+  document.getElementById('ov').classList.add('on');
+  if(t===0){
+    const k=K(pY[0],pMo[0],pD[0]);
+    document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';
+    setTimeout(()=>document.getElementById('ntxt').focus(),350);
+  }
+  if(t===2) document.getElementById('curem').textContent=(cal[K(pY[2],pMo[2],pD[2])]||{}).emoji||'';
+}
+function refreshPD(t){
+  const y=pY[t],m=pMo[t],d=pD[t],fd=fD(y,m,d);
+  if(t===0){document.getElementById('ntit').textContent='Nota · '+MN[m];document.getElementById('nday').textContent=fd;}
+  else if(t===1){
+    document.getElementById('ctit').textContent='Color · '+MN[m];
+    document.getElementById('cday').textContent=fd;
+    const cur=(cal[K(y,m,d)]||{}).color||'';
+    document.getElementById('cgrid').innerHTML=SW.map(c=>`<div class="sw${cur===c?' sel':''}" style="background:${c}" onclick="saveColor('${c}')"></div>`).join('');
+  }else{
+    document.getElementById('etit').textContent='Emoji · '+MN[m];
+    document.getElementById('eday').textContent=fd;
+    document.getElementById('egrid').innerHTML=EM.map(em=>`<button class="eb" onclick="saveEmoji('${em}')">${em}</button>`).join('');
+  }
+}
+function shiftDay(t,delta){
+  let d=pD[t],m=pMo[t],y=pY[t];
+  d+=delta;
+  if(d<1){m--;if(m<0){m=11;y--;}d=dIn(y,m);}
+  else if(d>dIn(y,m)){m++;if(m>11){m=0;y++;}d=1;}
+  pD[t]=d;pMo[t]=m;pY[t]=y;refreshPD(t);
+  if(t===0){const k=K(y,m,d);document.getElementById('ntxt').value=(cal[k]&&cal[k].nota)||'';}
+  if(t===2)document.getElementById('curem').textContent=(cal[K(y,m,d)]||{}).emoji||'';
+}
+function closeAll(){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+  document.getElementById('ov').classList.remove('on');
+}
+
+/* ── ACCIONES ── */
+function saveNota(){const y=pY[0],m=pMo[0],d=pD[0],k=K(y,m,d),v=document.getElementById('ntxt').value.trim();if(!cal[k])cal[k]={};if(v)cal[k].nota=v;else delete cal[k].nota;persist();closeAll();toast('Nota guardada ✓');}
+function deleteNota(){const y=pY[0],m=pMo[0],d=pD[0],k=K(y,m,d);if(cal[k])delete cal[k].nota;persist();closeAll();toast('Nota borrada');}
+function saveColor(col){const y=pY[1],m=pMo[1],d=pD[1],k=K(y,m,d);if(!cal[k])cal[k]={};cal[k].color=col;persist();closeAll();toast('Color aplicado ✓');}
+function clearColor(){const y=pY[1],m=pMo[1],d=pD[1],k=K(y,m,d);if(cal[k])delete cal[k].color;persist();closeAll();toast('Color quitado');}
+function saveEmoji(em){const y=pY[2],m=pMo[2],d=pD[2],k=K(y,m,d);if(!cal[k])cal[k]={};cal[k].emoji=em;persist();closeAll();toast(em+' añadido ✓');}
+function clearEmoji(){const y=pY[2],m=pMo[2],d=pD[2],k=K(y,m,d);if(cal[k])delete cal[k].emoji;persist();closeAll();toast('Emoji quitado');}
+
+/* ── COMUNICACIÓN CON EL IFRAME ── */
+/* Escuchar mensajes del tearable cuando avanza de mes */
+window.addEventListener('message', e=>{
+  if(!e.data) return;
+  if(e.data.type==='monthAdvanced'){
+    pushAcc(e.data.prevYear, e.data.prevMonth);
+    hist.push({y:e.data.prevYear, m:e.data.prevMonth});
+    cM=e.data.newMonth; cY=e.data.newYear;
+    [0,1,2].forEach(i=>{pD[i]=1;pY[i]=cY;pMo[i]=cM;});
+    toast(MN[cM]+' '+cY);
+  }
+});
+
+let tt;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1900);}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
+</script>
+</body>
+</html>
