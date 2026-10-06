@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T-Yel — calendario desgarrable</title>
+<meta name="description" content="Almanaque de hojas desgarrables con una simulación de tela propia en 3D. Notas, colores y emojis por día, guardados solo en tu navegador.">
+<link rel="stylesheet" href="css/tyel.css">
+</head>
+<body>
+<div id="tyel-wrap">
+
+  <!-- cabecera fija: anillas y línea de corte -->
+  <div id="tyel-header">
+    <div id="acc-stack" aria-hidden="true"></div>
+    <div id="rings-bar" aria-hidden="true">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div>
+    </div>
+    <div id="cut-line" aria-hidden="true">
+      <div class="cut-inner"><span class="cut-txt">rasgar aquí</span></div>
+    </div>
+  </div>
+
+  <!-- la hoja -->
+  <div id="tyel-main">
+    <canvas id="stage" tabindex="0" role="img"
+      aria-label="Hoja del calendario. Arrástrala hacia abajo para arrancarla; con teclado, pulsa Intro."></canvas>
+    <p class="sr-only" id="stage-status" aria-live="polite"></p>
+  </div>
+
+  <div id="tyel-reinicio-btn"><button type="button" id="btn-reinicio">↺ Empezar</button></div>
+
+  <!-- pie fijo -->
+  <div id="tyel-footer">
+    <button type="button" class="bb" data-open="0"><i class="bi" style="background:#c9837a">✎</i><span class="bl">Nota</span></button>
+    <button type="button" class="bb" data-open="1"><i class="bi" style="background:#5f8fa3">◈</i><span class="bl">Color</span></button>
+    <button type="button" class="bb" data-open="2"><i class="bi" style="background:#8a68b8">☺</i><span class="bl">Emoji</span></button>
+    <button type="button" class="bb" id="btn-volver"><i class="bi" style="background:#4f9d74">↺</i><span class="bl">Volver</span></button>
+    <button type="button" class="bb" id="btn-hoy"><i class="bi" style="background:#d08a45">◎</i><span class="bl">Hoy</span></button>
+  </div>
+</div>
+
+<div id="tyel-ov"></div>
+
+<div class="tyel-panel" id="tyel-pnota" role="dialog" aria-modal="true" aria-labelledby="tyel-ntit">
+  <div class="phan"></div>
+  <div class="ph-row"><div class="ptit" id="tyel-ntit">Nota</div><button type="button" class="pcl" data-close aria-label="Cerrar">✕</button></div>
+  <div class="dsr"><span class="dsl">Día:</span><span class="dsv" id="tyel-nday">—</span><div class="dsb"><button type="button" data-shift="0,-1" aria-label="Día anterior">‹</button><button type="button" data-shift="0,1" aria-label="Día siguiente">›</button></div></div>
+  <textarea id="tyel-ntxt" placeholder="Escribe tu nota..." maxlength="300" aria-label="Nota del día"></textarea>
+  <button type="button" class="sbtn" id="btn-save-nota">Guardar nota</button>
+  <button type="button" class="xbtn" id="btn-del-nota">Borrar nota de este día</button>
+</div>
+
+<div class="tyel-panel" id="tyel-pcolor" role="dialog" aria-modal="true" aria-labelledby="tyel-ctit">
+  <div class="phan"></div>
+  <div class="ph-row"><div class="ptit" id="tyel-ctit">Color</div><button type="button" class="pcl" data-close aria-label="Cerrar">✕</button></div>
+  <div class="dsr"><span class="dsl">Día:</span><span class="dsv" id="tyel-cday">—</span><div class="dsb"><button type="button" data-shift="1,-1" aria-label="Día anterior">‹</button><button type="button" data-shift="1,1" aria-label="Día siguiente">›</button></div></div>
+  <div class="cgrid" id="tyel-cgrid"></div>
+  <button type="button" class="xbtn" id="btn-clear-color">Quitar color de este día</button>
+</div>
+
+<div class="tyel-panel" id="tyel-pemoji" role="dialog" aria-modal="true" aria-labelledby="tyel-etit">
+  <div class="phan"></div>
+  <div class="ph-row"><div class="ptit" id="tyel-etit">Emoji</div><button type="button" class="pcl" data-close aria-label="Cerrar">✕</button></div>
+  <div class="dsr"><span class="dsl">Día:</span><span class="dsv" id="tyel-eday">—</span><div class="dsb"><button type="button" data-shift="2,-1" aria-label="Día anterior">‹</button><button type="button" data-shift="2,1" aria-label="Día siguiente">›</button></div></div>
+  <div class="cur-em" id="tyel-curem"></div>
+  <div class="egrid" id="tyel-egrid"></div>
+  <button type="button" class="xbtn" id="btn-clear-emoji" style="margin-top:10px">Quitar emoji de este día</button>
+</div>
+
+<div id="tyel-toast" role="status" aria-live="polite"></div>
+
+<script src="js/cloth.js"></script>
+<script src="js/sheet.js"></script>
+<script src="js/gl.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
