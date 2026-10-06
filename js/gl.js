@@ -12,36 +12,43 @@
   'use strict';
 
   var VERT = [
-    'attribute vec3 aPos; attribute vec2 aUv; attribute vec3 aNor;',
+    'attribute vec3 aPos; attribute vec2 aUv; attribute vec3 aNor; attribute vec2 aEx;',
     'uniform vec2 uRes; uniform vec2 uCenter; uniform float uDist;',
-    'varying vec2 vUv; varying vec3 vNor;',
+    'varying vec2 vUv; varying vec3 vNor; varying vec2 vEx;',
     'void main(){',
     '  float s = uDist / (uDist - aPos.z);',
     '  vec2 p = uCenter + (aPos.xy - uCenter) * s;',
     '  gl_Position = vec4(p.x / uRes.x * 2.0 - 1.0, 1.0 - p.y / uRes.y * 2.0, -aPos.z / 4000.0, 1.0);',
-    '  vUv = aUv; vNor = aNor;',
+    '  vUv = aUv; vNor = aNor; vEx = aEx;',
     '}'
   ].join('\n');
 
   var FRAG = [
     'precision mediump float;',
     'uniform sampler2D uTex; uniform float uAlpha; uniform float uMode;',
-    'varying vec2 vUv; varying vec3 vNor;',
+    'varying vec2 vUv; varying vec3 vNor; varying vec2 vEx;',
     'void main(){',
     '  if (uMode > 0.5) {',                       // sombra: la altura viaja en la normal
-    '    float a = 0.34 * (1.0 - clamp(vNor.z / 300.0, 0.0, 1.0));',
+    '    float a = 0.30 * (1.0 - clamp(vNor.z / 320.0, 0.0, 1.0));',
     '    gl_FragColor = vec4(0.0, 0.0, 0.0, a * uAlpha); return;',
     '  }',
     '  vec3 n = normalize(vNor);',
     '  vec4 c = texture2D(uTex, vUv);',
     '  vec3 col = c.rgb;',
-    '  if (!gl_FrontFacing) { n = -n; col = mix(vec3(0.96, 0.95, 0.93), c.rgb, 0.08); }',
+    '  if (!gl_FrontFacing) {',                   // reverso: papel casi blanco con la tinta apenas translúcida
+    '    n = -n;',
+    '    vec3 ink = texture2D(uTex, vec2(1.0 - vUv.x, vUv.y)).rgb;',
+    '    col = mix(vec3(0.955, 0.945, 0.915), ink, 0.09);',
+    '  }',
     '  vec3 L = normalize(vec3(-0.35, -0.55, 0.75));',
-    '  float d = max(dot(n, L), 0.0);',
-    '  float light = 0.64 + 0.42 * d;',
+    '  float d = clamp(dot(n, L), -0.3, 1.0);',
+    '  float light = 0.76 + 0.26 * d;',            // difuso suave: el papel es mate
+    '  light *= 1.0 - 0.30 * clamp(vEx.x * 2.2, 0.0, 1.0);',   // oclusión en los pliegues
+    '  float fib = smoothstep(0.55, 1.0, vEx.y);',  // fibras claras en el borde rasgado
+    '  col = mix(col, vec3(0.97, 0.955, 0.93), fib * 0.6);',
     '  vec3 h = normalize(L + vec3(0.0, 0.0, 1.0));',
-    '  float spec = pow(max(dot(n, h), 0.0), 40.0) * 0.10;',
-    '  gl_FragColor = vec4(col * light + spec, c.a * uAlpha);',
+    '  float sheen = pow(max(dot(n, h), 0.0), 9.0) * 0.03;',
+    '  gl_FragColor = vec4(col * light + sheen, c.a * uAlpha);',
     '}'
   ].join('\n');
 
@@ -65,11 +72,11 @@
     gl.useProgram(p);
     this.prog = p;
     this.loc = {
-      pos: gl.getAttribLocation(p, 'aPos'), uv: gl.getAttribLocation(p, 'aUv'), nor: gl.getAttribLocation(p, 'aNor'),
+      pos: gl.getAttribLocation(p, 'aPos'), uv: gl.getAttribLocation(p, 'aUv'), nor: gl.getAttribLocation(p, 'aNor'), ex: gl.getAttribLocation(p, 'aEx'),
       res: gl.getUniformLocation(p, 'uRes'), center: gl.getUniformLocation(p, 'uCenter'), dist: gl.getUniformLocation(p, 'uDist'),
       tex: gl.getUniformLocation(p, 'uTex'), alpha: gl.getUniformLocation(p, 'uAlpha'), mode: gl.getUniformLocation(p, 'uMode')
     };
-    this.bPos = gl.createBuffer(); this.bUv = gl.createBuffer(); this.bNor = gl.createBuffer(); this.bIdx = gl.createBuffer();
+    this.bPos = gl.createBuffer(); this.bUv = gl.createBuffer(); this.bNor = gl.createBuffer(); this.bEx = gl.createBuffer(); this.bIdx = gl.createBuffer();
     this.meshKey = ''; this.nors = null; this.poss = null; this.sPos = null; this.sNor = null;
     this.w = 1; this.h = 1; this.dist = 1500;
     gl.enable(gl.BLEND);
@@ -127,6 +134,7 @@
     var uv = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
     var nor = new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]);
     this._bindAttr(this.bPos, L.pos, 3, pos); this._bindAttr(this.bUv, L.uv, 2, uv); this._bindAttr(this.bNor, L.nor, 3, nor);
+    this._bindAttr(this.bEx, L.ex, 2, new Float32Array(8));
     gl.uniform1f(L.mode, 0); gl.uniform1f(L.alpha, alpha == null ? 1 : alpha);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(L.tex, 0);
     gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
@@ -140,6 +148,7 @@
     var n = cloth.n, i, j;
     this.poss = new Float32Array(n * 3); this.nors = new Float32Array(n * 3);
     this.sPos = new Float32Array(n * 3); this.sNor = new Float32Array(n * 3);
+    this.fold = new Float32Array(n); this.ex = new Float32Array(n * 2); this.zeroEx = new Float32Array(n * 2);
     var uv = new Float32Array(n * 2);
     for (j = 0; j < cloth.rows; j++) for (i = 0; i < cloth.cols; i++) {
       var k = j * cloth.cols + i;
@@ -151,6 +160,7 @@
 
   TyelGL.prototype._indices = function (cloth) {
     var alive = cloth.aliveQuads(), cols = cloth.cols, rows = cloth.rows, idx = this.idxBuf, c = 0;
+    this._alive = alive;
     for (var j = 0; j < rows - 1; j++) for (var i = 0; i < cols - 1; i++) {
       if (!alive[j * (cols - 1) + i]) continue;
       var a = j * cols + i, b = a + 1, d = a + cols, e = d + 1;
@@ -159,24 +169,29 @@
     return c;
   };
 
-  /** Sombra de la hoja sobre la hoja de debajo (proyectada sobre z = 0). */
+  /** Sombra de la hoja sobre la hoja de debajo: tres pasadas con distinta apertura imitan el desenfoque. */
   TyelGL.prototype.drawShadow = function (cloth, alpha) {
     var gl = this.gl, L = this.loc;
     this._mesh(cloth);
-    var n = cloth.n, sp = this.sPos, sn = this.sNor;
-    for (var k = 0; k < n; k++) {
-      var z = cloth.z[k];
-      sp[k * 3] = cloth.x[k] + 0.47 * z; sp[k * 3 + 1] = cloth.y[k] + 0.73 * z; sp[k * 3 + 2] = 0;
-      sn[k * 3] = 0; sn[k * 3 + 1] = 0; sn[k * 3 + 2] = z;
-    }
     var count = this._indices(cloth);
     if (!count) return;
-    this._bindAttr(this.bPos, L.pos, 3, sp); this._bindAttr(this.bUv, L.uv, 2, this.uvData); this._bindAttr(this.bNor, L.nor, 3, sn);
+    var n = cloth.n, sp = this.sPos, sn = this.sNor;
+    var spreads = [1.0, 1.35, 1.8], weights = [0.55, 0.32, 0.22];
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bIdx);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.idxBuf.subarray(0, count), gl.DYNAMIC_DRAW);
-    gl.uniform1f(L.mode, 1); gl.uniform1f(L.alpha, alpha == null ? 1 : alpha);
+    gl.uniform1f(L.mode, 1);
     gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
-    gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+    for (var pass = 0; pass < 3; pass++) {
+      for (var k = 0; k < n; k++) {
+        var z = cloth.z[k], sc = spreads[pass];
+        sp[k * 3] = cloth.x[k] + 0.47 * z * sc; sp[k * 3 + 1] = cloth.y[k] + 0.73 * z * sc; sp[k * 3 + 2] = 0;
+        sn[k * 3] = 0; sn[k * 3 + 1] = 0; sn[k * 3 + 2] = z;
+      }
+      this._bindAttr(this.bPos, L.pos, 3, sp); this._bindAttr(this.bUv, L.uv, 2, this.uvData);
+      this._bindAttr(this.bNor, L.nor, 3, sn); this._bindAttr(this.bEx, L.ex, 2, this.zeroEx);
+      gl.uniform1f(L.alpha, (alpha == null ? 1 : alpha) * weights[pass]);
+      gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+    }
   };
 
   /** La tela, con perspectiva, luz y reverso. */
@@ -185,10 +200,19 @@
     this._mesh(cloth);
     var n = cloth.n, pos = this.poss;
     for (var k = 0; k < n; k++) { pos[k * 3] = cloth.x[k]; pos[k * 3 + 1] = cloth.y[k]; pos[k * 3 + 2] = cloth.z[k]; }
-    cloth.normals(this.nors);
+    cloth.normals(this.nors, this.fold);
     var count = this._indices(cloth);
     if (!count) return;
+    // x = pliegue (curvatura), y = vértice en el borde de una zona rasgada
+    var ex = this.ex, cols = cloth.cols, rows = cloth.rows, alive = this._alive, q;
+    for (q = 0; q < n; q++) { ex[q * 2] = this.fold[q]; ex[q * 2 + 1] = 0; }
+    for (var jj = 0; jj < rows - 1; jj++) for (var ii = 0; ii < cols - 1; ii++) {
+      if (alive[jj * (cols - 1) + ii]) continue;
+      var v0 = jj * cols + ii;
+      ex[v0 * 2 + 1] = 1; ex[(v0 + 1) * 2 + 1] = 1; ex[(v0 + cols) * 2 + 1] = 1; ex[(v0 + cols + 1) * 2 + 1] = 1;
+    }
     this._bindAttr(this.bPos, L.pos, 3, pos); this._bindAttr(this.bUv, L.uv, 2, this.uvData); this._bindAttr(this.bNor, L.nor, 3, this.nors);
+    this._bindAttr(this.bEx, L.ex, 2, ex);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bIdx);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.idxBuf.subarray(0, count), gl.DYNAMIC_DRAW);
     gl.uniform1f(L.mode, 0); gl.uniform1f(L.alpha, alpha == null ? 1 : alpha);

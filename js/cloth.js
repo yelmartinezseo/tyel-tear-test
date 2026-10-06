@@ -15,7 +15,7 @@
 (function (root) {
   'use strict';
 
-  var KIND_H = 0, KIND_V = 1, KIND_SHEAR = 2, KIND_PERF = 3;
+  var KIND_H = 0, KIND_V = 1, KIND_SHEAR = 2, KIND_PERF = 3, KIND_BEND = 4;
 
   function Cloth(o) {
     o = o || {};
@@ -32,6 +32,7 @@
     this.tearBody = o.tearBody || 2.4;   // razón de estiramiento que rompe el cuerpo de la hoja
     this.tearPerf = o.tearPerf || 1.18;  // ídem para la perforación (más débil: se rasga con un tirón corto)
     this.tearShear = o.tearShear || 2.8;
+    this.bendStiff = o.bendStiff != null ? o.bendStiff : 0.55; // 0 = tela suelta, 1 = muy rígido
 
     var n = this.cols * this.rows;
     this.n = n;
@@ -59,16 +60,27 @@
     if (o.pinTop !== false) for (i = 0; i < this.cols; i++) this.pinned[i] = 1;
 
     this.ca = []; this.cb = []; this.rest = []; this.kind = []; this.alive = [];
+    this.dep1 = []; this.dep2 = [];
+    this.hIdx = new Int32Array(n).fill(-1); this.vIdx = new Int32Array(n).fill(-1);
     for (j = 0; j < this.rows; j++) {
       for (i = 0; i < this.cols; i++) {
         var a = j * this.cols + i;
-        if (i < this.cols - 1) this._add(a, a + 1, sx, KIND_H);
-        if (j < this.rows - 1) this._add(a, a + this.cols, sy, j === 0 ? KIND_PERF : KIND_V);
+        if (i < this.cols - 1) { this.hIdx[a] = this.ca.length; this._add(a, a + 1, sx, KIND_H); }
+        if (j < this.rows - 1) { this.vIdx[a] = this.ca.length; this._add(a, a + this.cols, sy, j === 0 ? KIND_PERF : KIND_V); }
         if (i < this.cols - 1 && j < this.rows - 1) {
           var d = Math.sqrt(sx * sx + sy * sy);
           this._add(a, a + this.cols + 1, d, KIND_SHEAR);
           this._add(a + 1, a + this.cols, d, KIND_SHEAR);
         }
+      }
+    }
+    // Rigidez a la flexión: el papel no se arruga como una tela, se curva. Une cada partícula con la de
+    // dos lugares más allá; solo existe mientras sigan enteras las dos restricciones que la sostienen.
+    for (j = 0; j < this.rows; j++) {
+      for (i = 0; i < this.cols; i++) {
+        var q = j * this.cols + i;
+        if (i < this.cols - 2) this._addBend(q, q + 2, 2 * sx, this.hIdx[q], this.hIdx[q + 1]);
+        if (j < this.rows - 2) this._addBend(q, q + 2 * this.cols, 2 * sy, this.vIdx[q], this.vIdx[q + this.cols]);
       }
     }
     this.detached = false;
@@ -82,7 +94,11 @@
 
   Cloth.prototype._add = function (a, b, rest, kind) {
     this.ca.push(a); this.cb.push(b); this.rest.push(rest);
-    this.kind.push(kind); this.alive.push(1);
+    this.kind.push(kind); this.alive.push(1); this.dep1.push(-1); this.dep2.push(-1);
+  };
+  Cloth.prototype._addBend = function (a, b, rest, d1, d2) {
+    this._add(a, b, rest, KIND_BEND);
+    this.dep1[this.dep1.length - 1] = d1; this.dep2[this.dep2.length - 1] = d2;
   };
 
   /** Celdas con sus cuatro lados intactos (1 = se dibuja). */
@@ -91,7 +107,7 @@
     var mapH = new Uint8Array(cols * rows), mapV = new Uint8Array(cols * rows);
     var len = this.ca.length;
     for (var c = 0; c < len; c++) {
-      if (this.kind[c] === KIND_SHEAR) continue;
+      if (this.kind[c] === KIND_SHEAR || this.kind[c] === KIND_BEND) continue;
       var a = this.ca[c];
       if (this.cb[c] === a + 1) mapH[a] = this.alive[c]; else mapV[a] = this.alive[c];
     }
@@ -157,7 +173,7 @@
       var wb = (pinned[b] || held[b]) ? 0 : 1;
       var w = wa + wb;
       if (w === 0) continue;
-      var k = diff * (kind[c] === KIND_SHEAR ? 0.5 : 1) / w;
+      var kk = kind[c], k = diff * (kk === KIND_SHEAR ? 0.5 : (kk === KIND_BEND ? this.bendStiff : 1)) / w;
       if (wa) { x[a] += dx * k; y[a] += dy * k; z[a] += dz * k; }
       if (wb) { x[b] -= dx * k; y[b] -= dy * k; z[b] -= dz * k; }
     }
@@ -167,6 +183,7 @@
     var ca = this.ca, cb = this.cb, rest = this.rest, alive = this.alive, kind = this.kind;
     var x = this.x, y = this.y, z = this.z, len = ca.length, perfAlive = 0, broken = 0, c;
     for (c = 0; c < len; c++) {
+      if (kind[c] === KIND_BEND) continue;
       if (!alive[c]) { broken++; continue; }
       var a = ca[c], b = cb[c];
       var dx = x[b] - x[a], dy = y[b] - y[a], dz = z[b] - z[a];
@@ -180,6 +197,9 @@
     if (perfAlive > 0 && perfAlive <= tab) {
       for (c = 0; c < len; c++) if (kind[c] === KIND_PERF) alive[c] = 0;
       perfAlive = 0;
+    }
+    for (c = 0; c < len; c++) {
+      if (kind[c] === KIND_BEND && alive[c] && (!alive[this.dep1[c]] || !alive[this.dep2[c]])) alive[c] = 0;
     }
     this.perfAlive = perfAlive;
     this.broken = broken;
@@ -256,7 +276,7 @@
   };
 
   /** Normales por vértice (diferencias finitas). Plana ⇒ (0, 0, 1). Escribe en out (3 floats por vértice). */
-  Cloth.prototype.normals = function (out) {
+  Cloth.prototype.normals = function (out, foldOut) {
     var cols = this.cols, rows = this.rows, x = this.x, y = this.y, z = this.z;
     for (var j = 0; j < rows; j++) {
       for (var i = 0; i < cols; i++) {
@@ -268,6 +288,21 @@
         var nx = ty * bz - tz * by, ny = tz * bx - tx * bz, nz = tx * by - ty * bx;
         var len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
         out[k * 3] = nx / len; out[k * 3 + 1] = ny / len; out[k * 3 + 2] = nz / len;
+      }
+    }
+    if (foldOut) {
+      // curvatura: cuánto se separa la normal de cada vértice de la de sus vecinos (0 = plana, 1 = pliegue marcado)
+      for (j = 0; j < rows; j++) {
+        for (i = 0; i < cols; i++) {
+          var v = j * cols + i, m = 1;
+          var nb = [j * cols + Math.max(0, i - 1), j * cols + Math.min(cols - 1, i + 1), Math.max(0, j - 1) * cols + i, Math.min(rows - 1, j + 1) * cols + i];
+          for (var q = 0; q < 4; q++) {
+            var w = nb[q];
+            var dot = out[v * 3] * out[w * 3] + out[v * 3 + 1] * out[w * 3 + 1] + out[v * 3 + 2] * out[w * 3 + 2];
+            if (dot < m) m = dot;
+          }
+          foldOut[v] = 1 - Math.max(-1, Math.min(1, m));
+        }
       }
     }
     return out;

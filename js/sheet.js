@@ -30,6 +30,17 @@
     return { c: c, ctx: ctx };
   }
 
+  /** Grano de papel casi imperceptible: oscurece un poco al azar (multiplicación). */
+  function grain(r, w, h) {
+    var t = document.createElement('canvas'); t.width = t.height = 160;
+    var tc = t.getContext('2d'), id = tc.createImageData(160, 160), d = id.data;
+    for (var i = 0; i < d.length; i += 4) { var v = 228 + Math.random() * 27; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+    tc.putImageData(id, 0, 0);
+    r.save(); r.globalCompositeOperation = 'multiply'; r.globalAlpha = 0.55;
+    r.fillStyle = r.createPattern(t, 'repeat'); r.fillRect(0, 0, w, h);
+    r.restore();
+  }
+
   /** Hoja del mes (año y, mes m) de w×h píxeles CSS, a resolución dpr. */
   function paintMonth(w, h, dpr, y, m, cal, now) {
     var o = makeCanvas(w, h, dpr), r = o.ctx;
@@ -96,14 +107,16 @@
         r.fillText(entry.emoji, cx + (entry.nota ? colW * 0.24 : 0), cy + cellH * 0.38);
       }
     }
+    grain(r, w, h);
     return o.c;
   }
 
   /** Hoja de fin de año. */
   function paintEnd(w, h, dpr, y) {
     var o = makeCanvas(w, h, dpr), r = o.ctx, accent = '#c9837a';
+    r.fillStyle = '#1a1714'; r.fillRect(0, 0, w, h); // base opaca: si no, se transparenta la hoja de debajo
     var g = r.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#1a1714'); g.addColorStop(1, accent + '44');
+    g.addColorStop(0, 'rgba(26,23,20,1)'); g.addColorStop(1, 'rgba(201,131,122,0.27)');
     r.fillStyle = g; r.fillRect(0, 0, w, h);
 
     var yearFs = Math.min(w * 0.22, h * 0.34);
@@ -119,6 +132,7 @@
     r.strokeStyle = accent; r.lineWidth = 2; r.globalAlpha = 0.5;
     r.beginPath(); r.moveTo(w * 0.3, h * 0.69); r.lineTo(w * 0.7, h * 0.69); r.stroke();
     r.globalAlpha = 1;
+    grain(r, w, h);
     return o.c;
   }
 

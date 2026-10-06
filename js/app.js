@@ -64,8 +64,9 @@
   function makeFront(entry) {
     var f = { entry: entry, cloth: null };
     if (!entry.end && glr) {
-      var cols = Math.max(10, Math.min(26, Math.round(view.w / 48)));
-      var rows = Math.max(10, Math.min(22, Math.round(view.h / 48)));
+      var cell = Math.max(26, Math.sqrt(view.w * view.h / 1000)); // celda ≈ 26–30 px: pliegues más finos
+      var cols = Math.max(10, Math.min(44, Math.round(view.w / cell)));
+      var rows = Math.max(10, Math.min(32, Math.round(view.h / cell)));
       f.cloth = new Cloth({ cols: cols, rows: rows, width: view.w, height: view.h, x: 0, y: 0 });
     }
     $('tyel-reinicio-btn').style.display = entry.end ? 'flex' : 'none';
