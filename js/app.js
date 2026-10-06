@@ -19,7 +19,6 @@
   function showError(msg) { var b = $('tyel-error'); b.textContent = msg; b.hidden = false; try { console.error(msg); } catch (e) { /* nada */ } }
   window.addEventListener('error', function (e) { showError('Error: ' + e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')'); });
   window.addEventListener('unhandledrejection', function (e) { showError('Error: ' + (e.reason && e.reason.message || e.reason)); });
-  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ── dibujo: WebGL, o hoja plana si no hay WebGL ──
   var glr = null, ctx2d = null;
@@ -105,7 +104,7 @@
   // ── navegación ──
   function onTorn() {
     var old = front, e = old.entry;
-    if (old.cloth && !reduceMotion) falling.push({ cloth: old.cloth, tex: texFor(e), age: 0 });
+    if (old.cloth) falling.push({ cloth: old.cloth, tex: texFor(e), age: 0, hold: 1.0, fade: 0.8 });
     dragging = false; if (old.cloth) old.cloth.drop(); canvas.classList.remove('grabbing');
     if (!e.end) torn.push({ y: e.y, m: e.m });
     front = makeFront(next(e));
@@ -147,7 +146,7 @@
     if (!front.cloth || front.cloth.isSettled()) glr.drawFlat(ft.gl, view.rect);
     else { glr.drawShadow(front.cloth, 1); glr.drawCloth(front.cloth, ft.gl, 1); }
     for (var i = 0; i < falling.length; i++) {
-      var f = falling[i], a = Math.max(0, 1 - Math.max(0, f.age - 1.0) / 0.8);
+      var f = falling[i], a = Math.max(0, 1 - Math.max(0, f.age - f.hold) / f.fade);
       glr.drawShadow(f.cloth, a);
       glr.drawCloth(f.cloth, f.tex.gl, a);
     }
@@ -191,7 +190,7 @@
     for (var i = falling.length - 1; i >= 0; i--) {
       var f = falling[i];
       f.cloth.step(dt); f.age += dt; dirty = true;
-      if (f.age > 1.8 || f.cloth.bounds().minY > view.h + 80) falling.splice(i, 1);
+      if (f.age > f.hold + f.fade || f.cloth.bounds().minY > view.h + 80) falling.splice(i, 1);
     }
     sweepGraveyard(t);
     if (dirty) { draw(); dirty = false; checkBlank(); }

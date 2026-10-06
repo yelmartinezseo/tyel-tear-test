@@ -29,10 +29,10 @@
     this.damping = o.damping != null ? o.damping : 0.988;
     this.iterations = o.iterations || 14;
     this.substeps = o.substeps || 2;
-    this.tearBody = o.tearBody || 2.4;   // razón de estiramiento que rompe el cuerpo de la hoja
+    this.tearBody = o.tearBody || 2.0;   // razón de estiramiento que rompe el cuerpo de la hoja (rasga por donde se tira)
     this.tearPerf = o.tearPerf || 1.18;  // ídem para la perforación (más débil: se rasga con un tirón corto)
-    this.tearShear = o.tearShear || 2.8;
-    this.bendStiff = o.bendStiff != null ? o.bendStiff : 0.92; // 0 = tela suelta, 1 = muy rígido
+    this.tearShear = o.tearShear || 3.2;
+    this.bendStiff = o.bendStiff != null ? o.bendStiff : 0.5;  // 0 = tela suelta, 1 = muy rígido
 
     var n = this.cols * this.rows;
     this.n = n;
@@ -42,9 +42,15 @@
     this.held = new Uint8Array(n);
     this.hx = new Float32Array(n); this.hy = new Float32Array(n); // desplazamiento respecto al puntero
 
+    // La primera fila es muy fina: es la línea de rasgado. Al romperse solo se pierden unos píxeles, no una celda entera.
     var sx = this.width / (this.cols - 1);
-    var sy = this.height / (this.rows - 1);
+    var thin = Math.min(5, this.height / (this.rows - 1) * 0.2);
+    var sy = (this.height - thin) / (this.rows - 2);
     this.sx = sx; this.sy = sy;
+    this.rowY = new Float32Array(this.rows);   // y de reposo de cada fila (relativa al borde superior)
+    this.rowV = new Float32Array(this.rows);   // fracción de la altura (coordenada v de la textura)
+    for (var rj = 1; rj < this.rows; rj++) this.rowY[rj] = thin + (rj - 1) * sy;
+    for (rj = 0; rj < this.rows; rj++) this.rowV[rj] = this.rowY[rj] / this.height;
     this.maxSpeed = o.maxSpeed || Math.max(sx, sy) * 0.9; // px por subpaso
     this.maxLift = o.maxLift || Math.min(this.width, this.height) * 0.5;
 
@@ -53,7 +59,7 @@
       for (i = 0; i < this.cols; i++) {
         var k = j * this.cols + i;
         this.x[k] = this.px[k] = this.ox + i * sx;
-        this.y[k] = this.py[k] = this.oy + j * sy;
+        this.y[k] = this.py[k] = this.oy + this.rowY[j];
         this.z[k] = this.pz[k] = 0;
       }
     }
@@ -66,9 +72,9 @@
       for (i = 0; i < this.cols; i++) {
         var a = j * this.cols + i;
         if (i < this.cols - 1) { this.hIdx[a] = this.ca.length; this._add(a, a + 1, sx, KIND_H); }
-        if (j < this.rows - 1) { this.vIdx[a] = this.ca.length; this._add(a, a + this.cols, sy, j === 0 ? KIND_PERF : KIND_V); }
+        if (j < this.rows - 1) { this.vIdx[a] = this.ca.length; this._add(a, a + this.cols, this.rowY[j + 1] - this.rowY[j], j === 0 ? KIND_PERF : KIND_V); }
         if (i < this.cols - 1 && j < this.rows - 1) {
-          var d = Math.sqrt(sx * sx + sy * sy);
+          var d = Math.sqrt(sx * sx + (this.rowY[j + 1] - this.rowY[j]) * (this.rowY[j + 1] - this.rowY[j]));
           this._add(a, a + this.cols + 1, d, KIND_SHEAR);
           this._add(a + 1, a + this.cols, d, KIND_SHEAR);
         }
@@ -80,7 +86,7 @@
       for (i = 0; i < this.cols; i++) {
         var q = j * this.cols + i;
         if (i < this.cols - 2) this._addBend(q, q + 2, 2 * sx, this.hIdx[q], this.hIdx[q + 1]);
-        if (j < this.rows - 2) this._addBend(q, q + 2 * this.cols, 2 * sy, this.vIdx[q], this.vIdx[q + this.cols]);
+        if (j < this.rows - 2) this._addBend(q, q + 2 * this.cols, this.rowY[j + 2] - this.rowY[j], this.vIdx[q], this.vIdx[q + this.cols]);
       }
     }
     // Cada restricción aguanta un poco más o un poco menos: el desgarro serpentea en vez de seguir la cuadrícula.
@@ -88,11 +94,23 @@
     function rnd() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
     this.tearMul = new Float32Array(this.ca.length);
     for (var t = 0; t < this.tearMul.length; t++) this.tearMul[t] = this.kind[t] === KIND_PERF ? 0.92 + rnd() * 0.2 : 0.8 + rnd() * 0.4;
+    // Lista de restricciones estructurales (sin cizalla ni flexión) de cada partícula, para ver qué sigue unido a las anillas.
+    this.adj = [];
+    for (var ai = 0; ai < n; ai++) this.adj.push([]);
+    for (var ac = 0; ac < this.ca.length; ac++) {
+      if (this.kind[ac] === KIND_SHEAR || this.kind[ac] === KIND_BEND) continue;
+      this.adj[this.ca[ac]].push(ac); this.adj[this.cb[ac]].push(ac);
+    }
+    this.tip = new Uint8Array(n); this.tipPerf = new Uint8Array(n);
+    this.tipWeak = o.tipWeak || 0.72;   // fracción del límite junto a un corte abierto
+    this.hanging = n;     // partículas todavía unidas al borde superior
     this.detached = false;
     this.time = 0;
     this.broken = 0;
+    this.lastBroken = -1;
     this.perfAlive = this.cols;
     this.kinetic = 0;
+    this.flatness = 0;
     this.lift = 0;
     this.pointer = null;
   }
@@ -187,19 +205,45 @@
   Cloth.prototype._tear = function () {
     var ca = this.ca, cb = this.cb, rest = this.rest, alive = this.alive, kind = this.kind;
     var x = this.x, y = this.y, z = this.z, len = ca.length, perfAlive = 0, broken = 0, c;
+    // Punta de grieta: junto a un corte ya abierto el papel cede con menos esfuerzo, así el rasgón sigue el tirón.
+    var tip = this.tip, tipPerf = this.tipPerf;
+    tip.fill(0); tipPerf.fill(0);
+    for (c = 0; c < len; c++) {
+      if (alive[c] || kind[c] === KIND_BEND || kind[c] === KIND_SHEAR) continue;
+      if (kind[c] === KIND_PERF) { tipPerf[ca[c]] = 1; tipPerf[cb[c]] = 1; } else { tip[ca[c]] = 1; tip[cb[c]] = 1; }
+    }
     for (c = 0; c < len; c++) {
       if (kind[c] === KIND_BEND) continue;
       if (!alive[c]) { broken++; continue; }
       var a = ca[c], b = cb[c];
       var dx = x[b] - x[a], dy = y[b] - y[a], dz = z[b] - z[a];
-      var ratio = Math.sqrt(dx * dx + dy * dy + dz * dz) / rest[c];
+      var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      // la línea de rasgado es muy fina: se mide el estiramiento en píxeles frente a una celda, no en proporción de su grosor
+      var ratio = kind[c] === KIND_PERF ? 1 + (dist - rest[c]) / this.sy : dist / rest[c];
       var limit = kind[c] === KIND_PERF ? this.tearPerf : (kind[c] === KIND_SHEAR ? this.tearShear : this.tearBody);
-      if (ratio > limit * this.tearMul[c]) alive[c] = 0;
+      var weak = kind[c] === KIND_PERF ? (tipPerf[a] || tipPerf[b] ? 0.88 : 1) : (kind[c] === KIND_SHEAR ? 1 : (tip[a] || tip[b] ? this.tipWeak : 1));
+      if (ratio > limit * this.tearMul[c] * weak) alive[c] = 0;
       if (kind[c] === KIND_PERF && alive[c]) perfAlive++;
     }
-    // Cuando queda solo una pestaña diminuta unida a las anillas, cede bajo el peso de la hoja.
+    // Qué sigue colgando de las anillas: recorrido desde la fila de arriba por las uniones que quedan enteras.
+    if (broken !== this.lastBroken) {
+      this.lastBroken = broken;
+      var seen = new Uint8Array(this.n), stack = [], hang = 0, adj = this.adj, m, e, o2;
+      for (m = 0; m < this.cols; m++) { seen[m] = 1; stack.push(m); }
+      while (stack.length) {
+        m = stack.pop(); hang++;
+        for (e = 0; e < adj[m].length; e++) {
+          c = adj[m][e];
+          if (!alive[c]) continue;
+          o2 = ca[c] === m ? cb[c] : ca[c];
+          if (!seen[o2]) { seen[o2] = 1; stack.push(o2); }
+        }
+      }
+      this.hanging = hang;
+    }
+    // Cuando solo queda una tira diminuta unida a las anillas (o una pestaña de la perforación), cede bajo el peso de la hoja.
     var tab = Math.max(1, Math.floor(this.cols * 0.15));
-    if (perfAlive > 0 && perfAlive <= tab) {
+    if ((perfAlive > 0 && perfAlive <= tab) || this.hanging <= this.cols * 2.5) {
       for (c = 0; c < len; c++) if (kind[c] === KIND_PERF) alive[c] = 0;
       perfAlive = 0;
     }
@@ -210,11 +254,13 @@
     this.broken = broken;
     if (perfAlive === 0 && !this.detached) {
       this.detached = true;
+      this.bendStiff = 0.4;   // suelta, el papel se vuelve flexible y ondea al caer
       for (var k = 0; k < this.cols; k++) this.pinned[k] = 0;
       // al separarse se inclina un poco hacia delante, girando sobre su borde superior
       for (var q = 0; q < this.n; q++) {
         var f = (this.y[q] - this.oy) / this.height;
-        this.pz[q] = this.z[q] - 2.2 * f * f;
+        this.pz[q] = this.z[q] - 3.2 * f * f;
+        this.px[q] = this.x[q] - 1.4 * f;
       }
     }
   };
@@ -239,7 +285,7 @@
         var sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
         if (sp > ms) { var r = ms / sp; vx *= r; vy *= r; vz *= r; }
         px[k] = x[k]; py[k] = y[k]; pz[k] = z[k];
-        x[k] += vx; y[k] += vy + g * h * h; z[k] += vz;
+        x[k] += vx; y[k] += vy + g * h * h; z[k] += vz - (this.detached ? 0 : g * h * h * 0.45);   // lo levantado vuelve a caer hacia la pared
       }
       for (var it = 0; it < this.iterations; it++) this._solve();
       // la pared: nada atraviesa z = 0 (y la hoja pierde velocidad hacia atrás al apoyarse)
@@ -248,12 +294,17 @@
       }
     }
     this._tear();
-    var kin = 0;
+    var kin = 0, mz = 0, dev = 0;
     for (var q = 0; q < this.n; q++) {
       var ddx = x[q] - px[q], ddy = y[q] - py[q], ddz = z[q] - pz[q], m2 = ddx * ddx + ddy * ddy + ddz * ddz;
       if (m2 > kin) kin = m2;
+      if (z[q] > mz) mz = z[q];
+      var ex = Math.abs(x[q] - (this.ox + (q % this.cols) * this.sx)), ey = Math.abs(y[q] - (this.oy + this.rowY[Math.floor(q / this.cols)]));
+      if (ex > dev) dev = ex;
+      if (ey > dev) dev = ey;
     }
     this.kinetic = Math.sqrt(kin);
+    this.flatness = Math.max(mz, dev);   // distancia máxima a su posición plana de reposo
     this.time += dt;
   };
 
@@ -266,7 +317,7 @@
 
   /** ¿Está quieta e intacta? (se puede dibujar plana) */
   Cloth.prototype.isSettled = function () {
-    return !this.pointer && !this.detached && this.broken === 0 && this.kinetic < 0.04 && this.time > 0.4;
+    return !this.pointer && !this.detached && this.broken === 0 && this.kinetic < 0.04 && this.flatness < 1 && this.time > 0.4;
   };
 
   Cloth.prototype.bounds = function () {

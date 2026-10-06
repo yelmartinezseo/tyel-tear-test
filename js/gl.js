@@ -12,14 +12,14 @@
   'use strict';
 
   var VERT = [
-    'attribute vec3 aPos; attribute vec2 aUv; attribute vec3 aNor; attribute vec3 aEx;',
+    'attribute vec3 aPos; attribute vec2 aUv; attribute vec3 aNor; attribute vec3 aEx; attribute vec2 aCell;',
     'uniform vec2 uRes; uniform vec2 uCenter; uniform float uDist;',
-    'varying vec2 vUv; varying vec3 vNor; varying vec3 vEx;',
+    'varying vec2 vUv; varying vec3 vNor; varying vec3 vEx; varying vec2 vCell;',
     'void main(){',
     '  float s = uDist / (uDist - aPos.z);',
     '  vec2 p = uCenter + (aPos.xy - uCenter) * s;',
     '  gl_Position = vec4(p.x / uRes.x * 2.0 - 1.0, 1.0 - p.y / uRes.y * 2.0, -aPos.z / 4000.0, 1.0);',
-    '  vUv = aUv; vNor = aNor; vEx = aEx;',
+    '  vUv = aUv; vNor = aNor; vEx = aEx; vCell = aCell;',
     '}'
   ].join('\n');
 
@@ -29,26 +29,28 @@
     '#else',
     'precision mediump float;',
     '#endif',
-    'uniform sampler2D uTex; uniform float uAlpha; uniform float uMode; uniform vec2 uNoise;',
-    'varying vec2 vUv; varying vec3 vNor; varying vec3 vEx;',
+    'uniform sampler2D uTex; uniform sampler2D uField; uniform float uAlpha; uniform float uMode; uniform float uUseField; uniform vec2 uNoise;',
+    'varying vec2 vUv; varying vec3 vNor; varying vec3 vEx; varying vec2 vCell;',
     'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
     'float vnoise(vec2 p){',
     '  vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);',
     '  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);',
     '}',
     'void main(){',
+    '  float edge = 0.0;',
+    '  if (uUseField > 0.5) {',                  // contorno suave de lo que sigue entero: un corte en diagonal no sale en escalera
+    '    float f = texture2D(uField, vCell).r;',
+    '    vec2 p = vUv * uNoise;',
+    '    float nz = 0.45 * vnoise(p) + 0.3 * vnoise(p * 2.7 + 7.3) + 0.25 * vnoise(p * 7.9 + 3.1);',   // grueso, medio y fibra fina
+    '    float th = 0.5 + 0.3 * nz;',            // el borde se desgasta de forma irregular, igual en cada fotograma
+    '    if (f < th) discard;',
+    '    edge = 1.0 - smoothstep(th, th + 0.14, f);',
+    '  }',
     '  if (uMode > 0.5) {',                       // sombra: la altura viaja en la normal
     '    float a = 0.30 * (1.0 - clamp(vNor.z / 320.0, 0.0, 1.0));',
     '    gl_FragColor = vec4(0.0, 0.0, 0.0, a * uAlpha); return;',
     '  }',
-    '  float solid = 1.0;',
-    '  if (vEx.z < 0.999) {',                     // fleco del borde rasgado: se recorta con ruido, de forma irregular
-    '    vec2 p = vUv * uNoise;',
-    '    float nz = 0.6 * vnoise(p) + 0.4 * vnoise(p * 2.7 + 7.3);',
-    '    if (nz > vEx.z * 1.15 - 0.05) discard;',
-    '    solid = 0.0;',
-    '  }',
-    '  vec3 n = normalize(vNor);',
+    '  vec3 n = length(vNor) > 0.0001 ? normalize(vNor) : vec3(0.0, 0.0, 1.0);',   // un trozo diminuto puede tener la normal a cero
     '  vec4 c = texture2D(uTex, vUv);',
     '  vec3 col = c.rgb;',
     '  if (!gl_FrontFacing) {',                   // reverso: papel casi blanco con la tinta apenas translúcida
@@ -60,8 +62,7 @@
     '  float d = clamp(dot(n, L), -0.3, 1.0);',
     '  float light = 0.80 + 0.22 * d;',            // difuso suave: el papel es mate y fino
     '  light *= 1.0 - 0.16 * clamp(vEx.x * 2.0, 0.0, 1.0);',   // ligera oclusión en los pliegues
-    '  float fib = smoothstep(0.82, 1.0, vEx.y) * (1.0 - solid * 0.0);',
-    '  col = mix(col, vec3(0.97, 0.955, 0.93), max(fib * 0.55, (1.0 - solid) * 0.55));',  // borde claro y fino
+    '  col = mix(col, vec3(0.97, 0.955, 0.93), edge * 0.7);',  // filo claro y fino de la fibra
     '  vec3 h = normalize(L + vec3(0.0, 0.0, 1.0));',
     '  float sheen = pow(max(dot(n, h), 0.0), 9.0) * 0.025;',
     '  gl_FragColor = vec4(col * light + sheen, c.a * uAlpha);',
@@ -88,11 +89,11 @@
     gl.useProgram(p);
     this.prog = p;
     this.loc = {
-      pos: gl.getAttribLocation(p, 'aPos'), uv: gl.getAttribLocation(p, 'aUv'), nor: gl.getAttribLocation(p, 'aNor'), ex: gl.getAttribLocation(p, 'aEx'),
+      pos: gl.getAttribLocation(p, 'aPos'), uv: gl.getAttribLocation(p, 'aUv'), nor: gl.getAttribLocation(p, 'aNor'), ex: gl.getAttribLocation(p, 'aEx'), cell: gl.getAttribLocation(p, 'aCell'),
       res: gl.getUniformLocation(p, 'uRes'), center: gl.getUniformLocation(p, 'uCenter'), dist: gl.getUniformLocation(p, 'uDist'),
-      tex: gl.getUniformLocation(p, 'uTex'), alpha: gl.getUniformLocation(p, 'uAlpha'), mode: gl.getUniformLocation(p, 'uMode'), noise: gl.getUniformLocation(p, 'uNoise')
+      tex: gl.getUniformLocation(p, 'uTex'), alpha: gl.getUniformLocation(p, 'uAlpha'), mode: gl.getUniformLocation(p, 'uMode'), noise: gl.getUniformLocation(p, 'uNoise'), field: gl.getUniformLocation(p, 'uField'), useField: gl.getUniformLocation(p, 'uUseField')
     };
-    this.bPos = gl.createBuffer(); this.bUv = gl.createBuffer(); this.bNor = gl.createBuffer(); this.bEx = gl.createBuffer(); this.bIdx = gl.createBuffer();
+    this.bPos = gl.createBuffer(); this.bUv = gl.createBuffer(); this.bNor = gl.createBuffer(); this.bEx = gl.createBuffer(); this.bCell = gl.createBuffer(); this.fieldTex = gl.createTexture(); this.bIdx = gl.createBuffer();
     this.meshKey = ''; this.nors = null; this.poss = null; this.sPos = null; this.sNor = null;
     this.w = 1; this.h = 1; this.dist = 1500;
     gl.enable(gl.BLEND);
@@ -110,7 +111,7 @@
     this.gl.uniform2f(this.loc.res, w, h);
     this.gl.uniform2f(this.loc.center, w / 2, h * 0.4);
     this.gl.uniform1f(this.loc.dist, this.dist);
-    this.gl.uniform2f(this.loc.noise, w / 7, h / 7); // el ruido del borde rasgado varía cada ~7 px
+    this.gl.uniform2f(this.loc.noise, w / 6, h / 6); // el desgaste del borde rasgado varía cada ~6 px
   };
 
   TyelGL.prototype.center = function () { return { x: this.w / 2, y: this.h * 0.4 }; };
@@ -152,7 +153,8 @@
     var nor = new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]);
     this._bindAttr(this.bPos, L.pos, 3, pos); this._bindAttr(this.bUv, L.uv, 2, uv); this._bindAttr(this.bNor, L.nor, 3, nor);
     this._bindAttr(this.bEx, L.ex, 3, new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]));
-    gl.uniform1f(L.mode, 0); gl.uniform1f(L.alpha, alpha == null ? 1 : alpha);
+    this._bindAttr(this.bCell, L.cell, 2, new Float32Array(8));
+    gl.uniform1f(L.mode, 0); gl.uniform1f(L.useField, 0); gl.uniform1f(L.alpha, alpha == null ? 1 : alpha);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(L.tex, 0);
     gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -169,9 +171,16 @@
     var uv = new Float32Array(n * 2);
     for (j = 0; j < cloth.rows; j++) for (i = 0; i < cloth.cols; i++) {
       var k = j * cloth.cols + i;
-      uv[k * 2] = i / (cloth.cols - 1); uv[k * 2 + 1] = j / (cloth.rows - 1);
+      uv[k * 2] = i / (cloth.cols - 1); uv[k * 2 + 1] = cloth.rowV[j];
     }
     this.uvData = uv;
+    var cell = new Float32Array(n * 2);
+    for (j = 0; j < cloth.rows; j++) for (i = 0; i < cloth.cols; i++) {
+      var kk = j * cloth.cols + i;
+      cell[kk * 2] = i / (cloth.cols - 1); cell[kk * 2 + 1] = j / (cloth.rows - 1);
+    }
+    this.cellData = cell;
+    this.fieldBytes = new Uint8Array((cloth.cols - 1) * (cloth.rows - 1));
     this.idxBuf = new Uint16Array((cloth.cols - 1) * (cloth.rows - 1) * 6);
   };
 
@@ -186,6 +195,24 @@
     return c;
   };
 
+  /** Mapa de celdas enteras (1) y rotas (0) en la unidad de textura 1; el sombreador lo suaviza para dibujar el contorno. */
+  TyelGL.prototype._field = function (cloth, alive) {
+    var gl = this.gl, b = this.fieldBytes, k;
+    for (k = 0; k < b.length; k++) b[k] = alive[k] ? 255 : 0;
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.fieldTex);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, cloth.cols - 1, cloth.rows - 1, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, b);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.uniform1i(this.loc.field, 1);
+    gl.activeTexture(gl.TEXTURE0);
+    this._bindAttr(this.bCell, this.loc.cell, 2, this.cellData);
+    gl.uniform1f(this.loc.useField, 1);
+  };
+
   /** Sombra de la hoja sobre la hoja de debajo: tres pasadas con distinta apertura imitan el desenfoque. */
   TyelGL.prototype.drawShadow = function (cloth, alpha) {
     var gl = this.gl, L = this.loc;
@@ -196,6 +223,7 @@
     var spreads = [1.0, 1.35, 1.8], weights = [0.55, 0.32, 0.22];
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bIdx);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.idxBuf.subarray(0, count), gl.DYNAMIC_DRAW);
+    this._field(cloth, this._alive);
     gl.uniform1f(L.mode, 1);
     gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
     for (var pass = 0; pass < 3; pass++) {
@@ -220,14 +248,10 @@
     cloth.normals(this.nors, this.fold);
     var count = this._indices(cloth);
     if (!count) return;
-    // x = pliegue (curvatura), y = vértice en el borde de una zona rasgada
-    var ex = this.ex, cols = cloth.cols, rows = cloth.rows, alive = this._alive, q;
+    // x = pliegue (curvatura)
+    var ex = this.ex, q;
     for (q = 0; q < n; q++) { ex[q * 3] = this.fold[q]; ex[q * 3 + 1] = 0; ex[q * 3 + 2] = 1; }
-    for (var jj = 0; jj < rows - 1; jj++) for (var ii = 0; ii < cols - 1; ii++) {
-      if (alive[jj * (cols - 1) + ii]) continue;
-      var v0 = jj * cols + ii;
-      ex[v0 * 3 + 1] = 1; ex[(v0 + 1) * 3 + 1] = 1; ex[(v0 + cols) * 3 + 1] = 1; ex[(v0 + cols + 1) * 3 + 1] = 1;
-    }
+    this._field(cloth, this._alive);
     this._bindAttr(this.bPos, L.pos, 3, pos); this._bindAttr(this.bUv, L.uv, 2, this.uvData); this._bindAttr(this.bNor, L.nor, 3, this.nors);
     this._bindAttr(this.bEx, L.ex, 3, ex);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bIdx);
@@ -237,39 +261,6 @@
     gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
     gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-    this._drawFringes(cloth, alive, pos);
-  };
-
-  /** Flecos: una banda de media celda más allá de cada borde rasgado, recortada con ruido para que sea irregular. */
-  TyelGL.prototype._drawFringes = function (cloth, alive, pos) {
-    var gl = this.gl, L = this.loc, cols = cloth.cols, rows = cloth.rows, h = 0.6;
-    var P = [], U = [], N = [], E = [];
-    var uv = this.uvData, nor = this.nors, self = this;
-    function vert(inner, opp, t) {
-      // vértice exterior = interior + (interior − opuesto) · h, con posición, uv y normal
-      var k;
-      for (k = 0; k < 3; k++) P.push(t >= 1 ? pos[inner * 3 + k] : pos[inner * 3 + k] + (pos[inner * 3 + k] - pos[opp * 3 + k]) * h);
-      for (k = 0; k < 2; k++) U.push(t >= 1 ? uv[inner * 2 + k] : uv[inner * 2 + k] + (uv[inner * 2 + k] - uv[opp * 2 + k]) * h);
-      for (k = 0; k < 3; k++) N.push(nor[inner * 3 + k]);
-      E.push(0, 0, t);
-    }
-    function strip(i0, i1, o0, o1) {
-      // i0,i1 = vértices del borde; o0,o1 = sus opuestos (al otro lado de la celda)
-      vert(i0, o0, 1); vert(i1, o1, 1); vert(i0, o0, 0);
-      vert(i1, o1, 1); vert(i1, o1, 0); vert(i0, o0, 0);
-    }
-    for (var j = 0; j < rows - 1; j++) for (var i = 0; i < cols - 1; i++) {
-      if (!alive[j * (cols - 1) + i]) continue;
-      var a = j * cols + i, b = a + 1, c = a + cols, d = c + 1;
-      if (i > 0 && !alive[j * (cols - 1) + i - 1]) strip(a, c, b, d);              // izquierda
-      if (i < cols - 2 && !alive[j * (cols - 1) + i + 1]) strip(b, d, a, c);       // derecha
-      if (j > 0 && !alive[(j - 1) * (cols - 1) + i]) strip(a, b, c, d);            // arriba
-      if (j < rows - 2 && !alive[(j + 1) * (cols - 1) + i]) strip(c, d, a, b);     // abajo
-    }
-    if (!P.length) return;
-    this._bindAttr(this.bPos, L.pos, 3, new Float32Array(P)); this._bindAttr(this.bUv, L.uv, 2, new Float32Array(U));
-    this._bindAttr(this.bNor, L.nor, 3, new Float32Array(N)); this._bindAttr(this.bEx, L.ex, 3, new Float32Array(E));
-    gl.drawArrays(gl.TRIANGLES, 0, P.length / 3);
   };
 
   var api = { TyelGL: TyelGL };
