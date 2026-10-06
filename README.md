@@ -1,5 +1,7 @@
 # T-Yel · calendario desgarrable
 
+**Demo en vivo:** <https://yel-martinez-portfolio.com/t-yel/> · **Explicación técnica:** <https://yel-martinez-portfolio.com/recursos/tyel-calendario-desgarrable-fisica-de-tela-webgl/>
+
 Almanaque de hojas desgarrables. Cada mes es una hoja de tela simulada en 3D (perspectiva, luz, sombra y
 reverso de papel): se arranca tirando de ella; se rasga por donde tires y los trozos sueltos caen. Por día se puede
 guardar una nota, un color y un emoji. Botones: Nota, Color, Emoji, Volver (mes anterior, también entre años)
