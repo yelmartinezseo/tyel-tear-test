@@ -107,7 +107,6 @@
         r.fillText(entry.emoji, cx + (entry.nota ? colW * 0.24 : 0), cy + cellH * 0.38);
       }
     }
-    grain(r, w, h);
     return o.c;
   }
 
@@ -132,7 +131,6 @@
     r.strokeStyle = accent; r.lineWidth = 2; r.globalAlpha = 0.5;
     r.beginPath(); r.moveTo(w * 0.3, h * 0.69); r.lineTo(w * 0.7, h * 0.69); r.stroke();
     r.globalAlpha = 1;
-    grain(r, w, h);
     return o.c;
   }
 

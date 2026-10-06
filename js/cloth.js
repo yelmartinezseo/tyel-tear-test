@@ -25,14 +25,14 @@
     this.height = o.height || 500;
     this.ox = o.x || 0;
     this.oy = o.y || 0;
-    this.gravity = o.gravity != null ? o.gravity : this.height * 4.8;
-    this.damping = o.damping != null ? o.damping : 0.992;
-    this.iterations = o.iterations || 10;
+    this.gravity = o.gravity != null ? o.gravity : this.height * 3.4;   // papel: ligero, cae con soltura
+    this.damping = o.damping != null ? o.damping : 0.988;
+    this.iterations = o.iterations || 14;
     this.substeps = o.substeps || 2;
     this.tearBody = o.tearBody || 2.4;   // razón de estiramiento que rompe el cuerpo de la hoja
     this.tearPerf = o.tearPerf || 1.18;  // ídem para la perforación (más débil: se rasga con un tirón corto)
     this.tearShear = o.tearShear || 2.8;
-    this.bendStiff = o.bendStiff != null ? o.bendStiff : 0.55; // 0 = tela suelta, 1 = muy rígido
+    this.bendStiff = o.bendStiff != null ? o.bendStiff : 0.92; // 0 = tela suelta, 1 = muy rígido
 
     var n = this.cols * this.rows;
     this.n = n;
@@ -83,6 +83,11 @@
         if (j < this.rows - 2) this._addBend(q, q + 2 * this.cols, 2 * sy, this.vIdx[q], this.vIdx[q + this.cols]);
       }
     }
+    // Cada restricción aguanta un poco más o un poco menos: el desgarro serpentea en vez de seguir la cuadrícula.
+    var seed = 0x2545F491 >>> 0;
+    function rnd() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
+    this.tearMul = new Float32Array(this.ca.length);
+    for (var t = 0; t < this.tearMul.length; t++) this.tearMul[t] = this.kind[t] === KIND_PERF ? 0.92 + rnd() * 0.2 : 0.8 + rnd() * 0.4;
     this.detached = false;
     this.time = 0;
     this.broken = 0;
@@ -189,7 +194,7 @@
       var dx = x[b] - x[a], dy = y[b] - y[a], dz = z[b] - z[a];
       var ratio = Math.sqrt(dx * dx + dy * dy + dz * dz) / rest[c];
       var limit = kind[c] === KIND_PERF ? this.tearPerf : (kind[c] === KIND_SHEAR ? this.tearShear : this.tearBody);
-      if (ratio > limit) alive[c] = 0;
+      if (ratio > limit * this.tearMul[c]) alive[c] = 0;
       if (kind[c] === KIND_PERF && alive[c]) perfAlive++;
     }
     // Cuando queda solo una pestaña diminuta unida a las anillas, cede bajo el peso de la hoja.

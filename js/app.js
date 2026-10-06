@@ -16,11 +16,14 @@
 
   function $(id) { return document.getElementById(id); }
   var canvas = $('stage');
+  function showError(msg) { var b = $('tyel-error'); b.textContent = msg; b.hidden = false; try { console.error(msg); } catch (e) { /* nada */ } }
+  window.addEventListener('error', function (e) { showError('Error: ' + e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')'); });
+  window.addEventListener('unhandledrejection', function (e) { showError('Error: ' + (e.reason && e.reason.message || e.reason)); });
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ── dibujo: WebGL, o hoja plana si no hay WebGL ──
   var glr = null, ctx2d = null;
-  try { glr = new TyelGLLib.TyelGL(canvas); } catch (e) { glr = null; ctx2d = canvas.getContext('2d'); }
+  try { glr = new TyelGLLib.TyelGL(canvas); } catch (e) { glr = null; ctx2d = canvas.getContext('2d'); showError('WebGL no disponible (' + e.message + '): se muestra la hoja sin efecto de rasgado.'); }
 
   // ── datos del usuario ──
   var cal = {};
@@ -150,6 +153,32 @@
     }
   }
 
+  // Si WebGL funciona pero no pinta nada (controlador o navegador problemático), pasa a hoja plana con aviso.
+  var blankChecks = 0;
+  function checkBlank() {
+    if (!glr || blankChecks > 2) return;
+    blankChecks++;
+    var gl = glr.gl, px = new Uint8Array(4);
+    gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    // (13, 11, 10) es el color de fondo con el que se limpia cada fotograma: si el centro sigue igual, no se ha pintado nada
+    var blank = (Math.abs(px[0] - 13) <= 3 && Math.abs(px[1] - 11) <= 3 && Math.abs(px[2] - 10) <= 3) || px[0] + px[1] + px[2] < 8;
+    if (blank) {
+      var info = '';
+      try { var ext = gl.getExtension('WEBGL_debug_renderer_info'); info = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) { /* nada */ }
+      useFallback('WebGL no pinta en este navegador (' + info + ', error ' + gl.getError() + '). Se muestra la hoja sin efecto de rasgado.');
+    }
+  }
+  function useFallback(msg) {
+    var n = canvas.cloneNode(false);
+    canvas.parentNode.replaceChild(n, canvas);
+    canvas = n; glr = null; ctx2d = canvas.getContext('2d');
+    bindEvents(canvas);
+    texCache = {}; graveyard = [];
+    layout(); falling = [];
+    front = makeFront(front.entry);
+    showError(msg);
+  }
+
   function frame(t) {
     var dt = Math.min(0.033, (t - last) / 1000 || 0.016); last = t;
     if (front && front.cloth) {
@@ -165,7 +194,7 @@
       if (f.age > 1.8 || f.cloth.bounds().minY > view.h + 80) falling.splice(i, 1);
     }
     sweepGraveyard(t);
-    if (dirty) { draw(); dirty = false; }
+    if (dirty) { draw(); dirty = false; checkBlank(); }
     requestAnimationFrame(frame);
   }
 
@@ -174,37 +203,42 @@
     var b = canvas.getBoundingClientRect();
     return { x: e.clientX - b.left, y: e.clientY - b.top };
   }
-  canvas.addEventListener('pointerdown', function (e) {
-    if (!front) return;
-    if (!front.cloth) { if (!glr && !front.entry.end) { onTorn(); } return; }
-    if (front.cloth.detached) return;
-    var p = pt(e), c = front.cloth;
-    if (c.grab(p.x, p.y, Math.max(c.sx, c.sy) * 1.7)) {
-      dragging = true; canvas.setPointerCapture(e.pointerId); canvas.classList.add('grabbing'); e.preventDefault();
+  function bindEvents(c) {
+    c.addEventListener('pointerdown', function (e) {
+      if (!front) return;
+      if (!front.cloth) { if (!glr && !front.entry.end) { onTorn(); } return; }
+      if (front.cloth.detached) return;
+      var p = pt(e), c = front.cloth;
+      if (c.grab(p.x, p.y, Math.max(c.sx, c.sy) * 1.7)) {
+        dragging = true; canvas.setPointerCapture(e.pointerId); canvas.classList.add('grabbing'); e.preventDefault();
+      }
+    });
+    c.addEventListener('pointermove', function (e) {
+      if (!dragging || !front || !front.cloth) return;
+      var p = pt(e), c = front.cloth;
+      c.move(p.x, p.y);
+      // con perspectiva, lo que está más cerca se ve ampliado: compensa para que el punto agarrado siga bajo el dedo
+      var ce = glr.center(), s = glr.dist / (glr.dist - c.lift);
+      c.pointer.x = ce.x + (p.x - ce.x) / s;
+      c.pointer.y = ce.y + (p.y - ce.y) / s;
+    });
+    function release() {
+      if (front && front.cloth) front.cloth.drop();
+      dragging = false; canvas.classList.remove('grabbing');
     }
-  });
-  canvas.addEventListener('pointermove', function (e) {
-    if (!dragging || !front || !front.cloth) return;
-    var p = pt(e), c = front.cloth;
-    c.move(p.x, p.y);
-    // con perspectiva, lo que está más cerca se ve ampliado: compensa para que el punto agarrado siga bajo el dedo
-    var ce = glr.center(), s = glr.dist / (glr.dist - c.lift);
-    c.pointer.x = ce.x + (p.x - ce.x) / s;
-    c.pointer.y = ce.y + (p.y - ce.y) / s;
-  });
-  function release() {
-    if (front && front.cloth) front.cloth.drop();
-    dragging = false; canvas.classList.remove('grabbing');
+    c.addEventListener('pointerup', release);
+    c.addEventListener('pointercancel', release);
+    c.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && front && !front.entry.end) {
+        e.preventDefault();
+        if (front.cloth && !front.cloth.detached) front.cloth.autoTear();
+        onTorn();
+      }
+    });
+
+
   }
-  canvas.addEventListener('pointerup', release);
-  canvas.addEventListener('pointercancel', release);
-  canvas.addEventListener('keydown', function (e) {
-    if ((e.key === 'Enter' || e.key === ' ') && front && !front.entry.end) {
-      e.preventDefault();
-      if (front.cloth && !front.cloth.detached) front.cloth.autoTear();
-      onTorn();
-    }
-  });
+  bindEvents(canvas);
 
   // ── paneles de nota, color y emoji ──
   var pD = [1, 1, 1], pMo = [0, 0, 0], pY = [0, 0, 0];

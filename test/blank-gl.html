@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>prueba: WebGL que no pinta</title>
+<script>
+// Simula un navegador cuyo WebGL no dibuja nada para comprobar el aviso y el modo de hoja plana.
+WebGLRenderingContext.prototype.drawArrays = function () {};
+WebGLRenderingContext.prototype.drawElements = function () {};
+fetch('../index.html').then(r => r.text()).then(t => {
+  t = t.replace('href="css/', 'href="../css/').replace(/src="js\//g, 'src="../js/');
+  document.open(); document.write(t); document.close();
+});
+</script>
