@@ -1,0 +1,33 @@
+{
+  "title": "T-Yel: calendario desgarrable con física de tela en WebGL",
+  "upload_type": "software",
+  "description": "Calendario de hojas desgarrables con física de tela propia (integración de Verlet) y dibujo WebGL, sin librerías ni imágenes de terceros. Rasgado libre y trozos que caen; las notas se guardan solo en el navegador.",
+  "creators": [
+    {
+      "name": "Martínez, Yel",
+      "orcid": "0009-0003-0219-7265"
+    }
+  ],
+  "license": "mit",
+  "keywords": [
+    "WebGL",
+    "física de tela",
+    "integración de Verlet",
+    "JavaScript",
+    "calendario"
+  ],
+  "language": "spa",
+  "related_identifiers": [
+    {
+      "identifier": "https://yel-martinez-portfolio.com/recursos/tyel-calendario-desgarrable-fisica-de-tela-webgl/",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-other",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/yelmartinezseo/tyel-tear-test",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
