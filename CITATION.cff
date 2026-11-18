@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "Si usas este software, cítalo con estos metadatos. El DOI apunta siempre a la versión más reciente."
+type: software
+title: "T-Yel: calendario desgarrable con física de tela en WebGL"
+abstract: "Calendario de hojas desgarrables con física de tela propia (Verlet y WebGL): rasgado libre y trozos que caen. Demo y código abierto MIT en GitHub."
+authors:
+  - family-names: "Martínez"
+    given-names: "Yel"
+    alias: "yelmartinezseo"
+    affiliation: "Greentech"
+    website: "https://yel-martinez-portfolio.com"
+    orcid: "https://orcid.org/0009-0003-0219-7265"
+doi: "10.5281/zenodo.24311912"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24311912"
+    description: "DOI de concepto en Zenodo (todas las versiones)"
+license: MIT
+repository-code: "https://github.com/yelmartinezseo/tyel-tear-test"
+url: "https://yel-martinez-portfolio.com/recursos/tyel-calendario-desgarrable-fisica-de-tela-webgl/"
+keywords:
+  - "WebGL"
+  - "física de tela"
+  - "JavaScript"
+  - "calendario"
+  - "open source"
